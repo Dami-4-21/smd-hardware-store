@@ -1,0 +1,293 @@
+// Prisma Schema for SQB Hardware Store
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CUSTOMER
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String?  @unique
+  passwordHash  String   @map("password_hash")
+  role          UserRole @default(CUSTOMER)
+  firstName     String?  @map("first_name")
+  lastName      String?  @map("last_name")
+  phone         String?
+  isActive      Boolean  @default(true) @map("is_active")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  
+  // Business/Commercial Information (Tunisia)
+  companyName   String?  @map("company_name")
+  rneNumber     String?  @unique @map("rne_number") // Commercial Registration Number
+  rnePdfUrl     String?  @map("rne_pdf_url") // PDF of RNE document
+  taxId         String?  @map("tax_id") // Tax Identification Number
+  customerType  String?  @map("customer_type") // e.g., "Retailer", "Wholesaler", "Contractor"
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  orders        Order[]
+  addresses     Address[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String  @map("user_id")
+  label      String? // "Home", "Work", etc.
+  street     String
+  city       String
+  state      String?
+  postalCode String? @map("postal_code")
+  country    String  @default("Tunisia")
+  isDefault  Boolean @default(false) @map("is_default")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// ============================================
+// PRODUCT CATALOG
+// ============================================
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String?  @db.Text
+  imageUrl     String?  @map("image_url")
+  parentId     String?  @map("parent_id")
+  displayOrder Int      @default(0) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Self-relation for hierarchy
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  name             String
+  slug             String   @unique
+  description      String?  @db.Text
+  shortDescription String?  @map("short_description") @db.Text
+  sku              String?  @unique
+  brand            String?
+  basePrice        Decimal  @map("base_price") @db.Decimal(10, 2)
+  categoryId       String   @map("category_id")
+  stockQuantity    Int      @default(0) @map("stock_quantity")
+  isActive         Boolean  @default(true) @map("is_active")
+  isFeatured       Boolean  @default(false) @map("is_featured")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category       Category             @relation(fields: [categoryId], references: [id])
+  images         ProductImage[]
+  specifications ProductSpecification[]
+  sizeTable      ProductSizeTable[]
+  packSizes      ProductPackSize[]
+  orderItems     OrderItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id           String   @id @default(uuid())
+  productId    String   @map("product_id")
+  imageUrl     String   @map("image_url")
+  altText      String?  @map("alt_text")
+  displayOrder Int      @default(0) @map("display_order")
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductSpecification {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  specName  String   @map("spec_name")
+  specValue String   @map("spec_value")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_specifications")
+}
+
+model ProductSizeTable {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  unitType      String   @map("unit_type") // kg, piece, L, m, etc.
+  size          String
+  price         Decimal  @db.Decimal(10, 2)
+  stockQuantity Int      @map("stock_quantity")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+  @@map("product_size_tables")
+}
+
+model ProductPackSize {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  packType      String   @map("pack_type") // e.g., "Pack of 12", "Pack of 6", "Pack of 3"
+  packQuantity  Int      @map("pack_quantity") // Number of pieces in the pack (12, 6, 3)
+  size          String?  // Optional size for this pack (e.g., "X", "Y", "Z")
+  unitType      String?  @map("unit_type") // Optional: m, cm, mm for measurement-based products
+  price         Decimal  @db.Decimal(10, 2)
+  stockQuantity Int      @map("stock_quantity")
+  sku           String?  // Optional unique SKU for this pack-size combination
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, packType, size])
+  @@map("product_pack_sizes")
+}
+
+// ============================================
+// ORDERS
+// ============================================
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  BANK_TRANSFER
+  CREDIT_CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique @map("order_number")
+  userId          String?       @map("user_id")
+  customerName    String        @map("customer_name")
+  customerEmail   String        @map("customer_email")
+  customerPhone   String        @map("customer_phone")
+  shippingAddressId String?     @map("shipping_address_id")
+  shippingAddress String?       @map("shipping_address") @db.Text
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod @map("payment_method")
+  paymentStatus   PaymentStatus @default(PENDING) @map("payment_status")
+  subtotal        Decimal       @db.Decimal(10, 2)
+  taxAmount       Decimal       @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount     Decimal       @map("total_amount") @db.Decimal(10, 2)
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user          User?      @relation(fields: [userId], references: [id])
+  shippingAddr  Address?   @relation(fields: [shippingAddressId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String  @map("order_id")
+  productId       String  @map("product_id")
+  productName     String  @map("product_name")
+  productSku      String? @map("product_sku")
+  selectedSize    String? @map("selected_size")
+  selectedUnitType String? @map("selected_unit_type")
+  quantity        Int
+  unitPrice       Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice      Decimal @map("total_price") @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  orderId   String      @map("order_id")
+  status    OrderStatus
+  notes     String?     @db.Text
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_status_history")
+}
+
+// ============================================
+// ANALYTICS (Optional - for future)
+// ============================================
+
+model Analytics {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  metric    String
+  value     Decimal  @db.Decimal(15, 2)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([date, metric])
+  @@map("analytics")
+}

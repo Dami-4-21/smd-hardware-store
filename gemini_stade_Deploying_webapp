@@ -1,0 +1,32 @@
+# Gemini Deployment State
+
+## Phase: 6 - Frontend Deployment
+## Guide: FRONTEND-DEPLOYMENT.md
+
+### Summary of Progress:
+We are following the "Option B: Netlify" path.
+
+1.  **Part 1: Prepare Frontend Applications** - COMPLETE
+    - Created `.env.production` for both customer shop and admin dashboard.
+    - Fixed `vite.config.ts` for the customer shop.
+    - Successfully built and tested both applications locally.
+
+2.  **Part 2, Step 1: Create Netlify Account** - COMPLETE
+    - User has created a Netlify account and linked it to GitHub.
+
+3.  **Part 2, Step 2: Push Code to GitHub** - IN PROGRESS
+    - Successfully resolved issues with an embedded git repository in the `backend` folder.
+    - Created a clean, local monorepo structure.
+    - Created the remote repository at `https://github.com/Dami-4-21/smd-hardware-store`.
+
+### Last Command Given:
+The user is about to run the final commands to push the complete code to GitHub:
+1. `git remote add origin https://github.com/Dami-4-21/smd-hardware-store.git`
+2. `git push -f -u origin main`
+
+### Next Step After Push:
+- **Part 2, Step 3: Deploy Customer Shop to Netlify**
+- Create the `netlify.toml` file in the project root.
+- Push the new file to GitHub.
+- Go to the Netlify dashboard to "Import an existing project".
+- Configure the build settings for the customer shop.

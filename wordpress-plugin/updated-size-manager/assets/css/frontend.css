@@ -1,0 +1,258 @@
+/**
+ * UpdatedSizeManager - Frontend Styles
+ */
+
+/* UpdatedSizeManager Container */
+.updated-size-manager-table {
+    margin: 25px 0;
+    padding: 25px;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.updated-size-manager-table h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Size Selector */
+.size-selector-wrapper {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.size-selector-wrapper label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+}
+
+.size-selector {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.size-selector:hover {
+    border-color: #999;
+}
+
+.size-selector:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Selected Size Info */
+.selected-size-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 2px solid #2271b1;
+    border-radius: 6px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.selected-size-info p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: #333;
+}
+
+.selected-size-info strong {
+    color: #2271b1;
+}
+
+.size-price {
+    font-size: 18px !important;
+}
+
+#size-price-display {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2271b1;
+}
+
+.size-unit-label {
+    font-size: 13px;
+    color: #666;
+    font-weight: normal;
+}
+
+/* Size Table */
+.size-table-frontend {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.size-table-frontend thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.size-table-frontend th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.size-table-frontend td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #333;
+}
+
+.size-table-frontend tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.size-table-frontend tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.size-table-frontend tbody tr.selected-size {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2271b1;
+}
+
+.size-table-frontend tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.size-table-frontend td strong {
+    color: #2271b1;
+    font-size: 16px;
+}
+
+.size-table-frontend td small {
+    color: #666;
+    font-size: 12px;
+}
+
+/* Price Formatting */
+.size-table-frontend .woocommerce-Price-amount {
+    font-weight: 600;
+    color: #2271b1;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .updated-size-manager-table {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .updated-size-manager-table h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .size-selector-wrapper {
+        padding: 12px;
+    }
+    
+    .size-selector {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .selected-size-info {
+        padding: 12px;
+    }
+    
+    .selected-size-info p {
+        font-size: 14px;
+    }
+    
+    #size-price-display {
+        font-size: 18px;
+    }
+    
+    .size-table-frontend {
+        font-size: 13px;
+    }
+    
+    .size-table-frontend th,
+    .size-table-frontend td {
+        padding: 10px 8px;
+    }
+    
+    .size-table-frontend th {
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .updated-size-manager-table {
+        padding: 12px;
+    }
+    
+    .size-table-frontend th,
+    .size-table-frontend td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+    
+    .size-table-frontend td strong {
+        font-size: 14px;
+    }
+}
+
+/* Integration with WooCommerce Themes */
+.woocommerce div.product .updated-size-manager-table {
+    clear: both;
+}
+
+.woocommerce div.product form.cart .updated-size-manager-table {
+    margin-bottom: 20px;
+}
+
+/* Print Styles */
+@media print {
+    .size-selector-wrapper {
+        display: none;
+    }
+    
+    .selected-size-info {
+        border: 1px solid #000;
+    }
+    
+    .size-table-frontend thead {
+        background: #333 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
