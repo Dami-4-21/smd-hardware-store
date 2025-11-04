@@ -1,8 +1,26 @@
 [build]
-  command = "npm run build"
-  publish = "dist"
+      1     [build]
+    2       command = "npm run build"
+    3       publish = "dist"
+    4 
+    5     [build.environment]
+    6       NODE_VERSION = "18"
+    7 
+    8     [[redirects]]
+    9       from = "/*"
+   10       to = "/index.html"
+   11       status = 200
+   12 
+   13     [[headers]]
+   14       for = "/*"
+   15       [headers.values]
+   16         X-Frame-Options = "DENY"
+   17         X-XSS-Protection = "1; mode=block"
+   18         X-Content-Type-Options = "nosniff"
+   19         Referrer-Policy = "strict-origin-when-cross-origin"
+   20 
+   21     [[headers]]
+   22       for = "/assets/*"
+   23       [headers.values]
+   24         Cache-Control = "public, max-age=31536000, immutable"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
