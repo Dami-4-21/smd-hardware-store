@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, AlertCircle, Upload } from 'lucide-react';
+import { X, AlertCircle, Upload, Link } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -27,6 +27,8 @@ export default function CategoryModal({ category, parentCategory, onSave, onClos
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(category?.imageUrl || '');
+  const [imageInputUrl, setImageInputUrl] = useState<string>('');
+  const [useUrlInput, setUseUrlInput] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -98,13 +100,28 @@ export default function CategoryModal({ category, parentCategory, onSave, onClos
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview('');
+    setImageInputUrl('');
     setFormData({ ...formData, imageUrl: '' });
+  };
+
+  const handleUrlInput = () => {
+    if (imageInputUrl.trim()) {
+      setImagePreview(imageInputUrl);
+      setFormData({ ...formData, imageUrl: imageInputUrl });
+      setImageFile(null);
+      setUseUrlInput(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSave({ ...formData, imageFile: imageFile || undefined });
+      // If using URL input, don't send imageFile
+      if (imageInputUrl && !imageFile) {
+        onSave({ ...formData, imageUrl: imageInputUrl });
+      } else {
+        onSave({ ...formData, imageFile: imageFile || undefined });
+      }
     }
   };
 
@@ -200,6 +217,9 @@ export default function CategoryModal({ category, parentCategory, onSave, onClos
                   src={imagePreview}
                   alt="Category preview"
                   className="w-full h-full object-cover"
+                  onError={() => {
+                    setErrors({ ...errors, image: 'Failed to load image from URL' });
+                  }}
                 />
                 <button
                   type="button"
@@ -210,17 +230,71 @@ export default function CategoryModal({ category, parentCategory, onSave, onClos
                 </button>
               </div>
             ) : (
-              <label className="w-full h-48 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 mb-1">Click to upload category image</p>
-                <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
+              <div className="space-y-3">
+                {/* Toggle between upload and URL */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUseUrlInput(false)}
+                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                      !useUrlInput
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <Upload className="w-4 h-4 inline mr-2" />
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUseUrlInput(true)}
+                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                      useUrlInput
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <Link className="w-4 h-4 inline mr-2" />
+                    Use URL
+                  </button>
+                </div>
+
+                {useUrlInput ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={imageInputUrl}
+                        onChange={(e) => setImageInputUrl(e.target.value)}
+                        placeholder="https://res.cloudinary.com/your-image.jpg"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleUrlInput}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Load
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Enter image URL from Cloudinary or other image hosting service
+                    </p>
+                  </div>
+                ) : (
+                  <label className="w-full h-48 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                    <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-1">Click to upload category image</p>
+                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
             )}
             
             {errors.image && (
