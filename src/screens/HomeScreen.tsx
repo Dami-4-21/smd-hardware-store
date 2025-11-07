@@ -8,16 +8,16 @@ interface HomeScreenProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCategoryClick: (categoryId: string) => void;
+  onProductClick?: (productId: string) => void;
 }
 
-export default function HomeScreen({ categories, searchQuery, onSearchChange, onCategoryClick }: HomeScreenProps) {
+export default function HomeScreen({ categories, searchQuery, onSearchChange, onCategoryClick, onProductClick }: HomeScreenProps) {
   const handleBannerClick = (slide: any) => {
     // Handle banner click - navigate to linked product or category
     if (slide.linkType === 'CATEGORY' && slide.linkedCategoryId) {
       onCategoryClick(slide.linkedCategoryId);
-    } else if (slide.linkType === 'PRODUCT' && slide.linkedProductId) {
-      // Navigate to product detail - you can implement this later
-      console.log('Navigate to product:', slide.linkedProductId);
+    } else if (slide.linkType === 'PRODUCT' && slide.linkedProductId && onProductClick) {
+      onProductClick(slide.linkedProductId);
     }
   };
 

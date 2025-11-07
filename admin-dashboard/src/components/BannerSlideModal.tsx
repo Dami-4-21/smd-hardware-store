@@ -32,30 +32,118 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [categorySearch, setCategorySearch] = useState<string>('');
+  const [productSearch, setProductSearch] = useState<string>('');
+  const [categoryResults, setCategoryResults] = useState<Category[]>([]);
+  const [productResults, setProductResults] = useState<Product[]>([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    loadCategories();
-    loadProducts();
-  }, []);
+    // Load selected category/product if editing
+    if (slide?.linkedCategoryId) {
+      loadSelectedCategory(slide.linkedCategoryId);
+    }
+    if (slide?.linkedProductId) {
+      loadSelectedProduct(slide.linkedProductId);
+    }
+  }, [slide]);
 
-  const loadCategories = async () => {
+  const loadSelectedCategory = async (categoryId: string) => {
     try {
       const data = categoryService.getAllFlattened();
-      setCategories(data);
+      const category = data.find(c => c.id === categoryId);
+      if (category) {
+        setSelectedCategory(category);
+        setCategorySearch(category.name);
+      }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      console.error('Failed to load category:', error);
     }
   };
 
-  const loadProducts = async () => {
+  const loadSelectedProduct = async (productId: string) => {
+    try {
+      const product = await productService.getById(productId);
+      if (product) {
+        setSelectedProduct(product);
+        setProductSearch(product.name);
+      }
+    } catch (error) {
+      console.error('Failed to load product:', error);
+    }
+  };
+
+  const searchCategories = async (query: string) => {
+    setCategorySearch(query);
+    if (query.length < 2) {
+      setCategoryResults([]);
+      setShowCategoryDropdown(false);
+      return;
+    }
+
+    try {
+      const data = categoryService.getAllFlattened();
+      const filtered = data.filter(cat => 
+        cat.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 10); // Limit to 10 results
+      setCategoryResults(filtered);
+      setShowCategoryDropdown(true);
+    } catch (error) {
+      console.error('Failed to search categories:', error);
+    }
+  };
+
+  const searchProducts = async (query: string) => {
+    setProductSearch(query);
+    if (query.length < 2) {
+      setProductResults([]);
+      setShowProductDropdown(false);
+      return;
+    }
+
     try {
       const data = await productService.getAll();
-      setProducts(data.products);
+      const filtered = data.products.filter(prod => 
+        prod.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 10); // Limit to 10 results
+      setProductResults(filtered);
+      setShowProductDropdown(true);
     } catch (error) {
-      console.error('Failed to load products:', error);
+      console.error('Failed to search products:', error);
     }
+  };
+
+  const selectCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setCategorySearch(category.name);
+    setFormData({ ...formData, linkedCategoryId: category.id, linkedProductId: '' });
+    setShowCategoryDropdown(false);
+    setSelectedProduct(null);
+    setProductSearch('');
+  };
+
+  const selectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setProductSearch(product.name);
+    setFormData({ ...formData, linkedProductId: product.id, linkedCategoryId: '' });
+    setShowProductDropdown(false);
+    setSelectedCategory(null);
+    setCategorySearch('');
+  };
+
+  const clearCategorySelection = () => {
+    setSelectedCategory(null);
+    setCategorySearch('');
+    setFormData({ ...formData, linkedCategoryId: '' });
+  };
+
+  const clearProductSelection = () => {
+    setSelectedProduct(null);
+    setProductSearch('');
+    setFormData({ ...formData, linkedProductId: '' });
   };
 
   const handleUrlInput = () => {
@@ -332,53 +420,161 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Link To (Optional)
             </label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <select
-                  value={formData.linkType}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    linkType: e.target.value,
-                    linkedProductId: '',
-                    linkedCategoryId: '',
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            <div className="space-y-4">
+              {/* Link Type Selection */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, linkType: '', linkedProductId: '', linkedCategoryId: '' });
+                    clearCategorySelection();
+                    clearProductSelection();
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                    !formData.linkType
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
                 >
-                  <option value="">No Link</option>
-                  <option value="product">Product</option>
-                  <option value="category">Category</option>
-                </select>
+                  No Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, linkType: 'CATEGORY', linkedProductId: '' });
+                    clearProductSelection();
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                    formData.linkType === 'CATEGORY'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  Category
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, linkType: 'PRODUCT', linkedCategoryId: '' });
+                    clearCategorySelection();
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                    formData.linkType === 'PRODUCT'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  Product
+                </button>
               </div>
-              <div>
-                {formData.linkType === 'product' && (
-                  <select
-                    value={formData.linkedProductId}
-                    onChange={(e) => setFormData({ ...formData, linkedProductId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  >
-                    <option value="">Select Product</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {formData.linkType === 'category' && (
-                  <select
-                    value={formData.linkedCategoryId}
-                    onChange={(e) => setFormData({ ...formData, linkedCategoryId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
+
+              {/* Category Autocomplete */}
+              {formData.linkType === 'CATEGORY' && (
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Search Category
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={categorySearch}
+                      onChange={(e) => searchCategories(e.target.value)}
+                      onFocus={() => categorySearch.length >= 2 && setShowCategoryDropdown(true)}
+                      placeholder="Type to search categories..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    />
+                    {selectedCategory && (
+                      <button
+                        type="button"
+                        onClick={clearCategorySelection}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {showCategoryDropdown && categoryResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {categoryResults.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => selectCategory(category)}
+                          className="w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">{category.name}</div>
+                          {category.slug && (
+                            <div className="text-xs text-gray-500">{category.slug}</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedCategory && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-green-900">Selected: {selectedCategory.name}</div>
+                          <div className="text-xs text-green-700">ID: {selectedCategory.id}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Product Autocomplete */}
+              {formData.linkType === 'PRODUCT' && (
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Search Product
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={productSearch}
+                      onChange={(e) => searchProducts(e.target.value)}
+                      onFocus={() => productSearch.length >= 2 && setShowProductDropdown(true)}
+                      placeholder="Type to search products..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    />
+                    {selectedProduct && (
+                      <button
+                        type="button"
+                        onClick={clearProductSelection}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {showProductDropdown && productResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {productResults.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => selectProduct(product)}
+                          className="w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">{product.name}</div>
+                          <div className="text-xs text-gray-500">SKU: {product.sku || 'N/A'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedProduct && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-green-900">Selected: {selectedProduct.name}</div>
+                          <div className="text-xs text-green-700">ID: {selectedProduct.id}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

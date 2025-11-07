@@ -325,6 +325,7 @@ function AppContent() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onCategoryClick={navigateToCategory}
+            onProductClick={navigateToProduct}
           />
         )}
 
