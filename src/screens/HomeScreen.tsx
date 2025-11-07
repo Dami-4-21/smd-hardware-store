@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import CategoryCard from '../components/CategoryCard';
+import BannerSlider from '../components/BannerSlider';
 import { Category } from '../types/api';
 
 interface HomeScreenProps {
@@ -10,12 +11,19 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ categories, searchQuery, onSearchChange, onCategoryClick }: HomeScreenProps) {
+  const handleBannerClick = (slide: any) => {
+    // Handle banner click - navigate to linked product or category
+    if (slide.linkType === 'CATEGORY' && slide.linkedCategoryId) {
+      onCategoryClick(slide.linkedCategoryId);
+    } else if (slide.linkType === 'PRODUCT' && slide.linkedProductId) {
+      // Navigate to product detail - you can implement this later
+      console.log('Navigate to product:', slide.linkedProductId);
+    }
+  };
+
   return (
     <div className="pb-6">
-      <div className="bg-gradient-to-br from-gray-700 to-gray-900 text-white px-6 py-8">
-        <h2 className="text-2xl font-bold mb-2">Welcome to Hardware Store</h2>
-        <p className="text-gray-300">Everything you need for your projects</p>
-      </div>
+      <BannerSlider onSlideClick={handleBannerClick} />
 
       <div className="px-4 mt-6">
         {/* Search Bar */}
