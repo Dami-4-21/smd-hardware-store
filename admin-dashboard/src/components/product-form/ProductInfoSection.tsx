@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Upload, X, AlertCircle, Link } from 'lucide-react';
 import { ProductFormData } from '../../pages/CreateProductPage';
 import { categoryService, Category } from '../../services/categoryService';
 
@@ -11,6 +11,8 @@ interface Props {
 
 export default function ProductInfoSection({ formData, updateFormData, errors }: Props) {
   const [categories, setCategories] = useState<Category[]>(categoryService.getAllFlattened());
+  const [imageInputUrl, setImageInputUrl] = useState<string>('');
+  const [useUrlInput, setUseUrlInput] = useState<boolean>(false);
 
   // Subscribe to category changes
   useEffect(() => {
@@ -38,6 +40,16 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
       images: newImages,
       imagePreviewUrls: newPreviewUrls,
     });
+  };
+
+  const handleUrlInput = () => {
+    if (imageInputUrl.trim()) {
+      updateFormData({
+        imagePreviewUrls: [...formData.imagePreviewUrls, imageInputUrl],
+      });
+      setImageInputUrl('');
+      setUseUrlInput(false);
+    }
   };
 
   return (
@@ -140,18 +152,78 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
           ))}
           
           {/* Upload Button */}
-          <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-            <span className="text-sm text-gray-600">Upload Image</span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </label>
+          {!useUrlInput ? (
+            <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+              <Upload className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-600">Upload Image</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg p-2">
+              <Link className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-xs text-gray-600 text-center">URL Input Mode</span>
+            </div>
+          )}
         </div>
+
+        {/* Toggle between upload and URL */}
+        <div className="flex gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setUseUrlInput(false)}
+            className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+              !useUrlInput
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <Upload className="w-4 h-4 inline mr-2" />
+            Upload File
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseUrlInput(true)}
+            className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+              useUrlInput
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <Link className="w-4 h-4 inline mr-2" />
+            Use URL
+          </button>
+        </div>
+
+        {/* URL Input */}
+        {useUrlInput && (
+          <div className="mb-3">
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={imageInputUrl}
+                onChange={(e) => setImageInputUrl(e.target.value)}
+                placeholder="https://res.cloudinary.com/your-image.jpg"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleUrlInput}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Enter image URL from Cloudinary or other image hosting service
+            </p>
+          </div>
+        )}
         
         <p className="text-sm text-gray-500">
           First image will be the primary image. Recommended size: 800x800px
