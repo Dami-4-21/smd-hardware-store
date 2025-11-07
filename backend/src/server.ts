@@ -16,6 +16,7 @@ import productRoutes from './routes/product.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import customerRoutes from './routes/customer.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import bannerRoutes from './routes/banner.routes.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -84,6 +85,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/banners', bannerRoutes);
 
 // ============================================
 // ERROR HANDLING
