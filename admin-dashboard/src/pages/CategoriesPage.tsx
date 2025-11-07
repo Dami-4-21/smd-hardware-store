@@ -81,13 +81,32 @@ export default function CategoriesPage() {
     const { imageFile, ...catData } = categoryData;
     
     try {
-      // If there's an image file, create a temporary URL for preview
-      // In production, this would upload to server and get back a URL
       let imageUrl = catData.imageUrl;
+      
+      // Upload image file if provided
       if (imageFile) {
-        imageUrl = URL.createObjectURL(imageFile);
-        console.log('Image file to upload:', imageFile.name, imageFile.size, 'bytes');
-        // TODO: Upload to server and get real URL
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        formData.append('uploadType', 'categories');
+        
+        const token = localStorage.getItem('admin_token');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        
+        const uploadResponse = await fetch(`${API_URL}/upload/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.data.url;
+        console.log('Image uploaded successfully:', imageUrl);
       }
       
       if (editingCategory) {
