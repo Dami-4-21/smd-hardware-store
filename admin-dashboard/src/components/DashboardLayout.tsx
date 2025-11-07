@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Megaphone,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Categories', href: '/categories', icon: FolderTree },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Customers', href: '/customers', icon: Users },
+  { name: 'Marketing', href: '/marketing/banners', icon: Megaphone },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

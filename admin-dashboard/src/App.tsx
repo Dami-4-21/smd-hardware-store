@@ -9,6 +9,7 @@ import CategoriesPage from './pages/CategoriesPage';
 import OrdersPage from './pages/OrdersPage';
 import CustomersPage from './pages/CustomersPage';
 import SettingsPage from './pages/SettingsPage';
+import BannerSliderPage from './pages/BannerSliderPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -53,6 +54,7 @@ function App() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/marketing/banners" element={<BannerSliderPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

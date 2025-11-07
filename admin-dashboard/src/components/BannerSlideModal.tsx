@@ -1,0 +1,435 @@
+import { useState, useEffect } from 'react';
+import { X, Upload, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { bannerService, BannerSlide, CreateBannerSlideData } from '../services/bannerService';
+import { categoryService, Category } from '../services/categoryService';
+import { productService, Product } from '../services/productService';
+
+interface Props {
+  slide: BannerSlide | null;
+  onSave: () => void;
+  onClose: () => void;
+}
+
+export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
+  const [formData, setFormData] = useState<CreateBannerSlideData>({
+    title: slide?.title || '',
+    subtitle: slide?.subtitle || '',
+    buttonText: slide?.buttonText || '',
+    slideType: slide?.slideType || 'IMAGE',
+    imageUrl: slide?.imageUrl || '',
+    backgroundColor: slide?.backgroundColor || '#2C3E50',
+    textColor: slide?.textColor || '#FFFFFF',
+    linkType: slide?.linkType || '',
+    linkedProductId: slide?.linkedProductId || '',
+    linkedCategoryId: slide?.linkedCategoryId || '',
+    displayOrder: slide?.displayOrder || 0,
+    isActive: slide?.isActive !== undefined ? slide.isActive : true,
+  });
+
+  const [imageInputUrl, setImageInputUrl] = useState<string>('');
+  const [useUrlInput, setUseUrlInput] = useState<boolean>(false);
+  const [imagePreview, setImagePreview] = useState<string>(slide?.imageUrl || '');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    loadCategories();
+    loadProducts();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const data = categoryService.getAllFlattened();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      const data = await productService.getAll();
+      setProducts(data.products);
+    } catch (error) {
+      console.error('Failed to load products:', error);
+    }
+  };
+
+  const handleUrlInput = () => {
+    if (imageInputUrl.trim()) {
+      setImagePreview(imageInputUrl);
+      setFormData({ ...formData, imageUrl: imageInputUrl });
+      setImageInputUrl('');
+      setUseUrlInput(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview('');
+    setImageInputUrl('');
+    setFormData({ ...formData, imageUrl: '' });
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (formData.slideType === 'IMAGE' && !formData.imageUrl) {
+      newErrors.imageUrl = 'Image URL is required for IMAGE slide type';
+    }
+
+    if (formData.slideType === 'TEXT' && !formData.backgroundColor) {
+      newErrors.backgroundColor = 'Background color is required for TEXT slide type';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (slide) {
+        await bannerService.updateSlide(slide.id, formData);
+      } else {
+        await bannerService.createSlide(formData);
+      }
+      onSave();
+    } catch (error) {
+      console.error('Failed to save banner slide:', error);
+      alert('Failed to save banner slide. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">
+            {slide ? 'Edit Banner Slide' : 'Add Banner Slide'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Slide Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Slide Type *
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, slideType: 'IMAGE' })}
+                className={`p-4 border-2 rounded-lg transition-colors ${
+                  formData.slideType === 'IMAGE'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <Upload className="w-6 h-6 mx-auto mb-2" />
+                <span className="font-medium">Image Slide</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, slideType: 'TEXT' })}
+                className={`p-4 border-2 rounded-lg transition-colors ${
+                  formData.slideType === 'TEXT'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <span className="text-2xl mb-2 block">Aa</span>
+                <span className="font-medium">Text Slide</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Image Upload (for IMAGE type) */}
+          {formData.slideType === 'IMAGE' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Banner Image *
+              </label>
+              {imagePreview ? (
+                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300">
+                  <img
+                    src={imagePreview}
+                    alt="Banner preview"
+                    className="w-full h-full object-cover"
+                    onError={() => {
+                      setErrors({ ...errors, imageUrl: 'Failed to load image from URL' });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUseUrlInput(false)}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                        !useUrlInput
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <Upload className="w-4 h-4 inline mr-2" />
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUseUrlInput(true)}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                        useUrlInput
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <LinkIcon className="w-4 h-4 inline mr-2" />
+                      Use URL
+                    </button>
+                  </div>
+
+                  {useUrlInput ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={imageInputUrl}
+                          onChange={(e) => setImageInputUrl(e.target.value)}
+                          placeholder="https://res.cloudinary.com/your-image.jpg"
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleUrlInput}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Load
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Enter image URL from Cloudinary or other image hosting service
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-sm text-gray-600">File upload coming soon</p>
+                      <p className="text-xs text-gray-500 mt-1">Use URL option for now</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {errors.imageUrl && (
+                <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.imageUrl}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Background Color (for TEXT type) */}
+          {formData.slideType === 'TEXT' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Background Color *
+                </label>
+                <input
+                  type="text"
+                  value={formData.backgroundColor}
+                  onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
+                  placeholder="#2C3E50 or gradient"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Hex color or CSS gradient
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Text Color
+                </label>
+                <input
+                  type="text"
+                  value={formData.textColor}
+                  onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                  placeholder="#FFFFFF"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Title & Subtitle */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Welcome to Hardware Store"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={formData.subtitle}
+                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                placeholder="Everything you need"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Button Text */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Button Text (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.buttonText}
+              onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
+              placeholder="Shop Now"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Link Configuration */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Link To (Optional)
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <select
+                  value={formData.linkType}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    linkType: e.target.value,
+                    linkedProductId: '',
+                    linkedCategoryId: '',
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                >
+                  <option value="">No Link</option>
+                  <option value="product">Product</option>
+                  <option value="category">Category</option>
+                </select>
+              </div>
+              <div>
+                {formData.linkType === 'product' && (
+                  <select
+                    value={formData.linkedProductId}
+                    onChange={(e) => setFormData({ ...formData, linkedProductId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  >
+                    <option value="">Select Product</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {formData.linkType === 'category' && (
+                  <select
+                    value={formData.linkedCategoryId}
+                    onChange={(e) => setFormData({ ...formData, linkedCategoryId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Display Order & Active Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Order
+              </label>
+              <input
+                type="number"
+                value={formData.displayOrder}
+                onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <label className="flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Active</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Saving...' : slide ? 'Update Slide' : 'Create Slide'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
