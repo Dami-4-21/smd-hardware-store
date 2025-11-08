@@ -186,10 +186,19 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
 
     try {
       setLoading(true);
+      
+      // Ensure linkType is synced with activeLinkType
+      const dataToSave = {
+        ...formData,
+        linkType: activeLinkType || null,
+      };
+      
+      console.log('Saving banner slide with data:', dataToSave);
+      
       if (slide) {
-        await bannerService.updateSlide(slide.id, formData);
+        await bannerService.updateSlide(slide.id, dataToSave);
       } else {
-        await bannerService.createSlide(formData);
+        await bannerService.createSlide(dataToSave);
       }
       onSave();
     } catch (error) {
