@@ -421,6 +421,10 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Link To (Optional)
             </label>
+            {/* Debug: Show current linkType */}
+            <div className="text-xs text-gray-500 mb-2">
+              Current linkType: "{formData.linkType || 'none'}"
+            </div>
             <div className="space-y-4">
               {/* Link Type Selection */}
               <div className="flex gap-3 relative z-10">
@@ -447,8 +451,10 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Category clicked');
-                    setFormData({ ...formData, linkType: 'CATEGORY', linkedProductId: '' });
+                    console.log('Category clicked, setting linkType to CATEGORY');
+                    const newFormData = { ...formData, linkType: 'CATEGORY', linkedProductId: '' };
+                    setFormData(newFormData);
+                    console.log('New formData:', newFormData);
                     clearProductSelection();
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
@@ -464,8 +470,10 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Product clicked');
-                    setFormData({ ...formData, linkType: 'PRODUCT', linkedCategoryId: '' });
+                    console.log('Product clicked, setting linkType to PRODUCT');
+                    const newFormData = { ...formData, linkType: 'PRODUCT', linkedCategoryId: '' };
+                    setFormData(newFormData);
+                    console.log('New formData:', newFormData);
                     clearCategorySelection();
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
