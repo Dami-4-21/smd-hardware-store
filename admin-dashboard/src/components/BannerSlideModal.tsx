@@ -200,8 +200,8 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-900">
             {slide ? 'Edit Banner Slide' : 'Add Banner Slide'}
@@ -423,15 +423,18 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
             </label>
             <div className="space-y-4">
               {/* Link Type Selection */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 relative z-10">
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('No Link clicked');
                     setFormData({ ...formData, linkType: '', linkedProductId: '', linkedCategoryId: '' });
                     clearCategorySelection();
                     clearProductSelection();
                   }}
-                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
                     !formData.linkType
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
@@ -441,11 +444,14 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Category clicked');
                     setFormData({ ...formData, linkType: 'CATEGORY', linkedProductId: '' });
                     clearProductSelection();
                   }}
-                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
                     formData.linkType === 'CATEGORY'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
@@ -455,11 +461,14 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Product clicked');
                     setFormData({ ...formData, linkType: 'PRODUCT', linkedCategoryId: '' });
                     clearCategorySelection();
                   }}
-                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
                     formData.linkType === 'PRODUCT'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
