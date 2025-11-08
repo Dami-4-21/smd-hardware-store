@@ -14,6 +14,7 @@ interface BannerSlide {
   linkedCategoryId?: string;
   displayOrder: number;
   isActive: boolean;
+  duration?: number; // Duration in seconds
 }
 
 interface BannerSliderProps {
@@ -62,12 +63,15 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
   useEffect(() => {
     if (slides.length <= 1) return;
 
+    const currentSlide = slides[currentIndex];
+    const duration = (currentSlide?.duration || 5) * 1000; // Convert to milliseconds, default 5 seconds
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 5000); // Auto-advance every 5 seconds
+    }, duration);
 
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [slides, currentIndex]);
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
@@ -92,11 +96,14 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
     console.log('Linked Category ID:', slide.linkedCategoryId);
     console.log('Linked Product ID:', slide.linkedProductId);
     
-    if (onSlideClick && (slide.linkType === 'CATEGORY' || slide.linkType === 'PRODUCT')) {
+    // Normalize linkType to uppercase for comparison
+    const normalizedLinkType = slide.linkType?.toUpperCase();
+    
+    if (onSlideClick && (normalizedLinkType === 'CATEGORY' || normalizedLinkType === 'PRODUCT')) {
       console.log('Triggering navigation...');
       onSlideClick(slide);
     } else {
-      console.log('No navigation - linkType is not CATEGORY or PRODUCT');
+      console.log('No navigation - linkType is not CATEGORY or PRODUCT, got:', slide.linkType);
     }
   };
 

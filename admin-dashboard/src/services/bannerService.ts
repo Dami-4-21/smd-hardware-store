@@ -24,6 +24,7 @@ export interface BannerSlide {
   };
   displayOrder: number;
   isActive: boolean;
+  duration?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,6 +42,7 @@ export interface CreateBannerSlideData {
   linkedCategoryId?: string;
   displayOrder?: number;
   isActive?: boolean;
+  duration?: number;
 }
 
 class BannerService {

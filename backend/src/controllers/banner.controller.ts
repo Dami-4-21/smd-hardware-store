@@ -159,6 +159,7 @@ export const createBannerSlide = async (req: Request, res: Response) => {
       linkedCategoryId,
       displayOrder,
       isActive,
+      duration,
     } = req.body;
 
     // Validation
@@ -203,6 +204,7 @@ export const createBannerSlide = async (req: Request, res: Response) => {
         linkedCategoryId: linkedCategoryId || null,
         displayOrder: displayOrder || 0,
         isActive: isActive !== undefined ? isActive : true,
+        duration: duration || 5,
       },
       include: {
         linkedProduct: {
@@ -256,6 +258,7 @@ export const updateBannerSlide = async (req: Request, res: Response) => {
       linkedCategoryId,
       displayOrder,
       isActive,
+      duration,
     } = req.body;
 
     const slide = await prisma.bannerSlide.update({
@@ -273,6 +276,7 @@ export const updateBannerSlide = async (req: Request, res: Response) => {
         linkedCategoryId,
         displayOrder,
         isActive,
+        duration,
       },
       include: {
         linkedProduct: {
