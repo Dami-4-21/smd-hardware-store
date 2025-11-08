@@ -77,14 +77,26 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
     setCurrentIndex((prev) => (prev + 1) % slides.length);
   };
 
-  const handleSlideClick = (slide: BannerSlide) => {
+  const handleSlideClick = (e: React.MouseEvent, slide: BannerSlide) => {
+    // Prevent click if user was swiping
+    if (touchStart !== null && touchEnd !== null) {
+      const distance = Math.abs(touchStart - touchEnd);
+      if (distance > 10) {
+        // User was swiping, don't trigger click
+        return;
+      }
+    }
+    
     console.log('Slide clicked:', slide);
     console.log('Link type:', slide.linkType);
     console.log('Linked Category ID:', slide.linkedCategoryId);
     console.log('Linked Product ID:', slide.linkedProductId);
     
     if (onSlideClick && (slide.linkType === 'CATEGORY' || slide.linkType === 'PRODUCT')) {
+      console.log('Triggering navigation...');
       onSlideClick(slide);
+    } else {
+      console.log('No navigation - linkType is not CATEGORY or PRODUCT');
     }
   };
 
@@ -187,7 +199,7 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
           backgroundColor: currentSlide.slideType === 'TEXT' ? currentSlide.backgroundColor : undefined,
           color: currentSlide.slideType === 'TEXT' ? currentSlide.textColor : '#FFFFFF',
         }}
-        onClick={() => handleSlideClick(currentSlide)}
+        onClick={(e) => handleSlideClick(e, currentSlide)}
       >
         {/* Background Image for IMAGE slides */}
         {currentSlide.slideType === 'IMAGE' && currentSlide.imageUrl && (
