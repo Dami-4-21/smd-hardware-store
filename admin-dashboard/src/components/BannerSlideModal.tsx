@@ -32,6 +32,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  const [activeLinkType, setActiveLinkType] = useState<string>(slide?.linkType || '');
   const [categorySearch, setCategorySearch] = useState<string>('');
   const [productSearch, setProductSearch] = useState<string>('');
   const [categoryResults, setCategoryResults] = useState<Category[]>([]);
@@ -423,7 +424,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
             </label>
             {/* Debug: Show current linkType */}
             <div className="text-xs text-gray-500 mb-2">
-              Current linkType: "{formData.linkType || 'none'}"
+              Current linkType: "{activeLinkType || 'none'}" | formData: "{formData.linkType || 'none'}"
             </div>
             <div className="space-y-4">
               {/* Link Type Selection */}
@@ -434,12 +435,13 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('No Link clicked');
+                    setActiveLinkType('');
                     setFormData({ ...formData, linkType: '', linkedProductId: '', linkedCategoryId: '' });
                     clearCategorySelection();
                     clearProductSelection();
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
-                    !formData.linkType
+                    !activeLinkType
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
@@ -452,13 +454,14 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Category clicked, setting linkType to CATEGORY');
+                    setActiveLinkType('CATEGORY');
                     const newFormData = { ...formData, linkType: 'CATEGORY', linkedProductId: '' };
                     setFormData(newFormData);
                     console.log('New formData:', newFormData);
                     clearProductSelection();
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
-                    formData.linkType === 'CATEGORY'
+                    activeLinkType === 'CATEGORY'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
@@ -471,13 +474,14 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Product clicked, setting linkType to PRODUCT');
+                    setActiveLinkType('PRODUCT');
                     const newFormData = { ...formData, linkType: 'PRODUCT', linkedCategoryId: '' };
                     setFormData(newFormData);
                     console.log('New formData:', newFormData);
                     clearCategorySelection();
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
-                    formData.linkType === 'PRODUCT'
+                    activeLinkType === 'PRODUCT'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
@@ -487,7 +491,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
               </div>
 
               {/* Category Autocomplete */}
-              {formData.linkType === 'CATEGORY' && (
+              {activeLinkType === 'CATEGORY' && (
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Search Category
@@ -542,7 +546,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
               )}
 
               {/* Product Autocomplete */}
-              {formData.linkType === 'PRODUCT' && (
+              {activeLinkType === 'PRODUCT' && (
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Search Product
