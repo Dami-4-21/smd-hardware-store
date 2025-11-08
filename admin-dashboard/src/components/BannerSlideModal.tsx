@@ -201,12 +201,13 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-900">
             {slide ? 'Edit Banner Slide' : 'Add Banner Slide'}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -214,7 +215,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Slide Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -255,7 +256,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                 Banner Image *
               </label>
               {imagePreview ? (
-                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300">
+                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300 mb-4">
                   <img
                     src={imagePreview}
                     alt="Banner preview"
@@ -267,7 +268,7 @@ export default function BannerSlideModal({ slide, onSave, onClose }: Props) {
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors z-10"
                   >
                     <X className="w-4 h-4" />
                   </button>
