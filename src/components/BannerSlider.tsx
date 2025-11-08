@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 
 interface BannerSlide {
   id: string;
@@ -26,6 +25,14 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Swipe gesture state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     fetchSlides();
@@ -71,9 +78,71 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
   };
 
   const handleSlideClick = (slide: BannerSlide) => {
-    if (onSlideClick) {
+    console.log('Slide clicked:', slide);
+    console.log('Link type:', slide.linkType);
+    console.log('Linked Category ID:', slide.linkedCategoryId);
+    console.log('Linked Product ID:', slide.linkedProductId);
+    
+    if (onSlideClick && (slide.linkType === 'CATEGORY' || slide.linkType === 'PRODUCT')) {
       onSlideClick(slide);
     }
+  };
+
+  // Touch handlers for swipe gestures
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrevious();
+    }
+  };
+
+  // Mouse handlers for desktop swipe
+  const onMouseDown = (e: React.MouseEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.clientX);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (touchStart === null) return;
+    setTouchEnd(e.clientX);
+  };
+
+  const onMouseUp = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrevious();
+    }
+    
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  const onMouseLeave = () => {
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   if (isLoading) {
@@ -98,7 +167,17 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
   const currentSlide = slides[currentIndex];
 
   return (
-    <div className="relative overflow-hidden">
+    <div 
+      ref={sliderRef}
+      className="relative overflow-hidden select-none"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+    >
       {/* Slide Container */}
       <div
         className={`relative px-6 py-8 cursor-pointer transition-all duration-500 ${
@@ -147,49 +226,25 @@ export default function BannerSlider({ onSlideClick }: BannerSliderProps) {
         </div>
       </div>
 
-      {/* Navigation Arrows - Only show if more than 1 slide */}
+      {/* Dots Indicator - Only show if more than 1 slide */}
       {slides.length > 1 && (
-        <>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrevious();
-            }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all z-20"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all z-20"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentIndex(index);
-                }}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-white w-6'
-                    : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentIndex
+                  ? 'bg-white w-6'
+                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
