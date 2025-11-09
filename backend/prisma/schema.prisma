@@ -19,6 +19,22 @@ enum UserRole {
   CUSTOMER
 }
 
+enum PaymentTerm {
+  NET_30 // 30 days
+  NET_60 // 60 days
+  NET_90 // 90 days
+  NET_120 // 120 days
+  IMMEDIATE // Cash on delivery
+}
+
+enum AccountStatus {
+  COMMERCIAL_IN_PROCESS // New customer, under review
+  FINANCIAL_IN_PROCESS // Approved for ordering, credit being set up
+  ACTIVE // Fully approved, can place orders
+  FINANCIAL_NON_CURRENT // Overdue payments, restricted
+  SUSPENDED // Account suspended
+}
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -30,21 +46,29 @@ model User {
   phone         String?
   isActive      Boolean  @default(true) @map("is_active")
   emailVerified Boolean  @default(false) @map("email_verified")
-  
+
   // Business/Commercial Information (Tunisia)
-  companyName   String?  @map("company_name")
-  rneNumber     String?  @unique @map("rne_number") // Commercial Registration Number
-  rnePdfUrl     String?  @map("rne_pdf_url") // PDF of RNE document
-  taxId         String?  @map("tax_id") // Tax Identification Number
-  customerType  String?  @map("customer_type") // e.g., "Retailer", "Wholesaler", "Contractor"
-  
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  companyName  String? @map("company_name")
+  rneNumber    String? @unique @map("rne_number") // Commercial Registration Number
+  rnePdfUrl    String? @map("rne_pdf_url") // PDF of RNE document
+  taxId        String? @map("tax_id") // Tax Identification Number
+  customerType String? @map("customer_type") // e.g., "Retailer", "Wholesaler", "Contractor"
+
+  // B2B Financial Fields
+  financialLimit     Decimal?      @default(0) @map("financial_limit") @db.Decimal(10, 2)
+  currentOutstanding Decimal?      @default(0) @map("current_outstanding") @db.Decimal(10, 2)
+  paymentTerm        PaymentTerm?  @map("payment_term")
+  accountStatus      AccountStatus @default(COMMERCIAL_IN_PROCESS) @map("account_status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  orders        Order[]
-  addresses     Address[]
-  refreshTokens RefreshToken[]
+  orders             Order[]
+  addresses          Address[]
+  refreshTokens      RefreshToken[]
+  quotations         Quotation[]
+  reviewedQuotations Quotation[]    @relation("ReviewedQuotations")
 
   @@map("users")
 }
@@ -72,8 +96,9 @@ model Address {
   country    String  @default("Tunisia")
   isDefault  Boolean @default(false) @map("is_default")
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders Order[]
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
+  quotations Quotation[]
 
   @@map("addresses")
 }
@@ -122,12 +147,13 @@ model Product {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   // Relations
-  category       Category             @relation(fields: [categoryId], references: [id])
+  category       Category               @relation(fields: [categoryId], references: [id])
   images         ProductImage[]
   specifications ProductSpecification[]
   sizeTable      ProductSizeTable[]
   packSizes      ProductPackSize[]
   orderItems     OrderItem[]
+  quotationItems QuotationItem[]
   bannerSlides   BannerSlide[]
 
   @@map("products")
@@ -180,11 +206,11 @@ model ProductPackSize {
   productId     String   @map("product_id")
   packType      String   @map("pack_type") // e.g., "Pack of 12", "Pack of 6", "Pack of 3"
   packQuantity  Int      @map("pack_quantity") // Number of pieces in the pack (12, 6, 3)
-  size          String?  // Optional size for this pack (e.g., "X", "Y", "Z")
+  size          String? // Optional size for this pack (e.g., "X", "Y", "Z")
   unitType      String?  @map("unit_type") // Optional: m, cm, mm for measurement-based products
   price         Decimal  @db.Decimal(10, 2)
   stockQuantity Int      @map("stock_quantity")
-  sku           String?  // Optional unique SKU for this pack-size combination
+  sku           String? // Optional unique SKU for this pack-size combination
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -195,8 +221,17 @@ model ProductPackSize {
 }
 
 // ============================================
-// ORDERS
+// QUOTATIONS & ORDERS
 // ============================================
+
+enum QuotationStatus {
+  DRAFT // Customer is building the quote
+  PENDING_APPROVAL // Submitted, waiting for admin review
+  APPROVED // Admin approved
+  DECLINED // Admin declined
+  CONVERTED_TO_ORDER // Successfully converted to order
+  EXPIRED // Quote expired (optional feature)
+}
 
 enum OrderStatus {
   PENDING
@@ -211,6 +246,8 @@ enum PaymentMethod {
   CASH_ON_DELIVERY
   BANK_TRANSFER
   CREDIT_CARD
+  NET_TERMS // For B2B orders with payment terms
+  CHEQUE // For B2B cheque payments
 }
 
 enum PaymentStatus {
@@ -220,45 +257,108 @@ enum PaymentStatus {
   REFUNDED
 }
 
-model Order {
-  id              String        @id @default(uuid())
-  orderNumber     String        @unique @map("order_number")
-  userId          String?       @map("user_id")
-  customerName    String        @map("customer_name")
-  customerEmail   String        @map("customer_email")
-  customerPhone   String        @map("customer_phone")
-  shippingAddressId String?     @map("shipping_address_id")
-  shippingAddress String?       @map("shipping_address") @db.Text
-  status          OrderStatus   @default(PENDING)
-  paymentMethod   PaymentMethod @map("payment_method")
-  paymentStatus   PaymentStatus @default(PENDING) @map("payment_status")
-  subtotal        Decimal       @db.Decimal(10, 2)
-  taxAmount       Decimal       @map("tax_amount") @db.Decimal(10, 2)
-  totalAmount     Decimal       @map("total_amount") @db.Decimal(10, 2)
-  notes           String?       @db.Text
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+model Quotation {
+  id              String          @id @default(uuid())
+  quotationNumber String          @unique @map("quotation_number")
+  userId          String          @map("user_id")
+  status          QuotationStatus @default(DRAFT)
+
+  // Financial Data
+  subtotal               Decimal @db.Decimal(10, 2)
+  taxAmount              Decimal @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount            Decimal @map("total_amount") @db.Decimal(10, 2)
+  anticipatedOutstanding Decimal @map("anticipated_outstanding") @db.Decimal(10, 2)
+
+  // Shipping Info
+  shippingAddressId String? @map("shipping_address_id")
+  shippingAddress   String? @map("shipping_address") @db.Text
+
+  // Admin Decision
+  adminDecisionReason String?   @map("admin_decision_reason") @db.Text
+  reviewedBy          String?   @map("reviewed_by")
+  reviewedAt          DateTime? @map("reviewed_at")
+
+  // Conversion Tracking
+  convertedToOrderId String? @unique @map("converted_to_order_id")
+
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user          User?      @relation(fields: [userId], references: [id])
-  shippingAddr  Address?   @relation(fields: [shippingAddressId], references: [id])
-  items         OrderItem[]
-  statusHistory OrderStatusHistory[]
+  user           User            @relation(fields: [userId], references: [id])
+  shippingAddr   Address?        @relation(fields: [shippingAddressId], references: [id])
+  items          QuotationItem[]
+  convertedOrder Order?          @relation("ConvertedFromQuotation", fields: [convertedToOrderId], references: [id])
+  reviewer       User?           @relation("ReviewedQuotations", fields: [reviewedBy], references: [id])
+
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id               String  @id @default(uuid())
+  quotationId      String  @map("quotation_id")
+  productId        String  @map("product_id")
+  productName      String  @map("product_name")
+  productSku       String? @map("product_sku")
+  selectedSize     String? @map("selected_size")
+  selectedUnitType String? @map("selected_unit_type")
+  quantity         Int
+  unitPrice        Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice       Decimal @map("total_price") @db.Decimal(10, 2)
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("quotation_items")
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique @map("order_number")
+  userId            String?       @map("user_id")
+  customerName      String        @map("customer_name")
+  customerEmail     String        @map("customer_email")
+  customerPhone     String        @map("customer_phone")
+  shippingAddressId String?       @map("shipping_address_id")
+  shippingAddress   String?       @map("shipping_address") @db.Text
+  status            OrderStatus   @default(PENDING)
+  paymentMethod     PaymentMethod @map("payment_method")
+  paymentStatus     PaymentStatus @default(PENDING) @map("payment_status")
+  subtotal          Decimal       @db.Decimal(10, 2)
+  taxAmount         Decimal       @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount       Decimal       @map("total_amount") @db.Decimal(10, 2)
+  notes             String?       @db.Text
+
+  // B2B Enhancements
+  quotationId String?      @unique @map("quotation_id")
+  paymentTerm PaymentTerm? @map("payment_term")
+  dueDate     DateTime?    @map("due_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user            User?                @relation(fields: [userId], references: [id])
+  shippingAddr    Address?             @relation(fields: [shippingAddressId], references: [id])
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  sourceQuotation Quotation?           @relation("ConvertedFromQuotation")
 
   @@map("orders")
 }
 
 model OrderItem {
-  id              String  @id @default(uuid())
-  orderId         String  @map("order_id")
-  productId       String  @map("product_id")
-  productName     String  @map("product_name")
-  productSku      String? @map("product_sku")
-  selectedSize    String? @map("selected_size")
+  id               String  @id @default(uuid())
+  orderId          String  @map("order_id")
+  productId        String  @map("product_id")
+  productName      String  @map("product_name")
+  productSku       String? @map("product_sku")
+  selectedSize     String? @map("selected_size")
   selectedUnitType String? @map("selected_unit_type")
-  quantity        Int
-  unitPrice       Decimal @map("unit_price") @db.Decimal(10, 2)
-  totalPrice      Decimal @map("total_price") @db.Decimal(10, 2)
+  quantity         Int
+  unitPrice        Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice       Decimal @map("total_price") @db.Decimal(10, 2)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -296,23 +396,23 @@ model BannerSlide {
   imageUrl        String?   @map("image_url")
   backgroundColor String?   @map("background_color") // For text slides
   textColor       String?   @map("text_color") // For text slides
-  
+
   // Link configuration
-  linkType        String?   @map("link_type") // "product" or "category"
-  linkedProductId String?   @map("linked_product_id")
-  linkedCategoryId String?  @map("linked_category_id")
-  
+  linkType         String? @map("link_type") // "product" or "category"
+  linkedProductId  String? @map("linked_product_id")
+  linkedCategoryId String? @map("linked_category_id")
+
   // Display settings
-  displayOrder    Int       @default(0) @map("display_order")
-  isActive        Boolean   @default(true) @map("is_active")
-  duration        Int?      @default(5) // Duration in seconds, default 5
-  
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  displayOrder Int     @default(0) @map("display_order")
+  isActive     Boolean @default(true) @map("is_active")
+  duration     Int?    @default(5) // Duration in seconds, default 5
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  linkedProduct   Product?  @relation(fields: [linkedProductId], references: [id], onDelete: SetNull)
-  linkedCategory  Category? @relation(fields: [linkedCategoryId], references: [id], onDelete: SetNull)
+  linkedProduct  Product?  @relation(fields: [linkedProductId], references: [id], onDelete: SetNull)
+  linkedCategory Category? @relation(fields: [linkedCategoryId], references: [id], onDelete: SetNull)
 
   @@map("banner_slides")
 }
