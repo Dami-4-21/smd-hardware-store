@@ -16,13 +16,13 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const menuItems = [
-    { icon: ShoppingBag, label: 'Shop', onClick: () => {} },
-    { icon: Package, label: 'My Orders & Invoices', onClick: () => {} },
-    { icon: FileText, label: 'Claims & Repairs', onClick: () => {} },
-    { icon: Heart, label: 'Wishlist', onClick: () => {} },
-    { icon: User, label: 'My Profile', onClick: () => {} },
-    { icon: MessageCircle, label: 'Support / Chat with Us', onClick: () => {} },
-    { icon: Megaphone, label: 'Promotions & News', onClick: () => {} }
+    { icon: ShoppingBag, label: 'Boutique', onClick: () => {} },
+    { icon: Package, label: 'Mes Commandes & Factures', onClick: () => {} },
+    { icon: FileText, label: 'Réclamations & Réparations', onClick: () => {} },
+    { icon: Heart, label: 'Liste de souhaits', onClick: () => {} },
+    { icon: User, label: 'Mon Profil', onClick: () => {} },
+    { icon: MessageCircle, label: 'Support / Discutez avec nous', onClick: () => {} },
+    { icon: Megaphone, label: 'Promotions & Actualités', onClick: () => {} }
   ];
 
   return (
@@ -42,8 +42,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-6 border-b border-green-500">
             <div>
-              <h2 className="text-xl font-bold text-white">Hardware Store</h2>
-              <p className="text-sm text-green-100">Your DIY Partner</p>
+              <h2 className="text-xl font-bold text-white">Quincaillerie</h2>
+              <p className="text-sm text-green-100">Votre Partenaire Bricolage</p>
             </div>
             <button
               onClick={onClose}

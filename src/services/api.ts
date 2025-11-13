@@ -84,55 +84,78 @@ function transformProduct(backendProduct: any): Product {
   // Get all images
   const images = backendProduct.images?.map((img: any) => img.imageUrl) || [];
 
-  // Handle size table data
+  // Handle size table data - NEW FORMAT
+  const sizeTable = backendProduct.sizeTable && Array.isArray(backendProduct.sizeTable) && backendProduct.sizeTable.length > 0
+    ? backendProduct.sizeTable.map((size: any) => ({
+        id: size.id,
+        unitType: size.unitType || 'piece',
+        size: size.size,
+        price: parseFloat(size.price),
+        stockQuantity: size.stockQuantity || 0
+      }))
+    : undefined;
+
+  // Handle size table data - OLD FORMAT (for backward compatibility)
   let sizeTableData;
-  if (backendProduct.sizeTable && Array.isArray(backendProduct.sizeTable) && backendProduct.sizeTable.length > 0) {
+  if (sizeTable && sizeTable.length > 0) {
     sizeTableData = {
       isSizeProduct: true,
-      unitType: backendProduct.sizeTable[0].unitType || 'piece',
-      sizeTable: backendProduct.sizeTable.map((size: any) => ({
+      unitType: sizeTable[0].unitType || 'piece',
+      sizeTable: sizeTable.map((size: any) => ({
         size: size.size,
-        quantity: size.stockQuantity || size.quantity || 0, // Backend uses stockQuantity
-        price: parseFloat(size.price)
+        quantity: size.stockQuantity,
+        price: size.price
       }))
     };
   }
 
-  // Handle pack size data
-  let packSizeData;
-  if (backendProduct.packSizes && Array.isArray(backendProduct.packSizes) && backendProduct.packSizes.length > 0) {
-    packSizeData = {
-      isPackProduct: true,
-      packSizes: backendProduct.packSizes.map((pack: any) => ({
+  // Handle pack size data - NEW FORMAT
+  const packSizes = backendProduct.packSizes && Array.isArray(backendProduct.packSizes) && backendProduct.packSizes.length > 0
+    ? backendProduct.packSizes.map((pack: any) => ({
         id: pack.id,
         packType: pack.packType,
         packQuantity: pack.packQuantity,
         size: pack.size || undefined,
         unitType: pack.unitType || undefined,
         price: parseFloat(pack.price),
-        stockQuantity: pack.stockQuantity,
-        sku: pack.sku || undefined
+        stockQuantity: pack.stockQuantity
       }))
+    : undefined;
+
+  // Handle pack size data - OLD FORMAT (for backward compatibility)
+  let packSizeData;
+  if (packSizes && packSizes.length > 0) {
+    packSizeData = {
+      isPackProduct: true,
+      packSizes: packSizes
     };
   }
 
   return {
     id: backendProduct.id,
     name: backendProduct.name,
-    price: parseFloat(backendProduct.basePrice || backendProduct.price || '0'),
+    basePrice: parseFloat(backendProduct.basePrice || backendProduct.price || '0'),
+    price: parseFloat(backendProduct.basePrice || backendProduct.price || '0'), // Backward compatibility
     image: primaryImage,
-    category: backendProduct.category?.slug || '',
-    categoryId: backendProduct.categoryId || 0,
+    category: backendProduct.category || backendProduct.category?.slug || '',
+    categoryId: backendProduct.categoryId || '',
     brand: backendProduct.brand || 'Generic',
     stock: backendProduct.stockQuantity || 0,
+    stockQuantity: backendProduct.stockQuantity || 0,
     description: backendProduct.description || '',
     shortDescription: backendProduct.shortDescription || '',
     sku: backendProduct.sku || '',
+    slug: backendProduct.slug || '',
+    isActive: backendProduct.isActive !== undefined ? backendProduct.isActive : true,
+    isFeatured: backendProduct.isFeatured || false,
     specifications,
     images,
+    imagesData: backendProduct.images || [],
     attributes,
-    sizeTableData,
-    packSizeData
+    sizeTable, // NEW: Direct array format
+    sizeTableData, // OLD: Nested format for backward compatibility
+    packSizes, // NEW: Direct array format
+    packSizeData // OLD: Nested format for backward compatibility
   };
 }
 
@@ -296,6 +319,7 @@ export class API {
       const order = await apiRequest<any>('/orders', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(orderData),

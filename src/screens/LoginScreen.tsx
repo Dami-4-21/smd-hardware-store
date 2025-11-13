@@ -31,7 +31,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       // Call success callback to navigate to account
       onLoginSuccess();
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Échec de la connexion. Veuillez vérifier vos identifiants.');
     } finally {
       setIsLoading(false);
     }
@@ -46,10 +46,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Customer Login
+          Connexion Client
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to access your account
+          Connectez-vous pour accéder à votre compte
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <div>
               <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
-                Email or Username
+                Email ou Nom d'utilisateur
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -82,14 +82,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your email or username"
+                  placeholder="Entrez votre email ou nom d'utilisateur"
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                Mot de passe
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -104,7 +104,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your password"
+                  placeholder="Entrez votre mot de passe"
                 />
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <div className="flex items-center justify-between">
               <div className="text-sm">
                 <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  Forgot your password?
+                  Mot de passe oublié?
                 </a>
               </div>
             </div>
@@ -126,12 +126,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Signing in...
+                    Connexion en cours...
                   </>
                 ) : (
                   <>
                     <LogIn className="w-5 h-5" />
-                    Sign in
+                    Se connecter
                   </>
                 )}
               </button>
@@ -145,14 +145,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
-                  New customer?
+                  Nouveau client?
                 </span>
               </div>
             </div>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Contact our sales team to create an account
+                Contactez notre équipe commerciale pour créer un compte
               </p>
               <p className="mt-2 text-sm text-blue-600 font-medium">
                 +216 XX XXX XXX

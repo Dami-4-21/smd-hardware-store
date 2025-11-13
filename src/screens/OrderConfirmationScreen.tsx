@@ -27,13 +27,13 @@ export default function OrderConfirmationScreen({
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {isManualEntry ? 'Order Received!' : 'Order Confirmed!'}
+          {isManualEntry ? 'Commande reçue!' : 'Commande confirmée!'}
         </h1>
 
         <p className="text-gray-600 mb-6">
           {isManualEntry
-            ? 'Your order has been received and is ready for manual processing in WooCommerce.'
-            : 'Thank you for your order. We\'ve received it and will process it shortly.'
+            ? 'Votre commande a été reçue et est prête pour le traitement manuel dans WooCommerce.'
+            : 'Merci pour votre commande. Nous l\'avons reçue et la traiterons sous peu.'
           }
         </p>
 
@@ -41,11 +41,11 @@ export default function OrderConfirmationScreen({
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Order Number:</span>
+                <span className="text-gray-600">Numéro de commande:</span>
                 <span className="font-semibold">#{order.order_number || order.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Status:</span>
+                <span className="text-gray-600">Statut:</span>
                 <span className="font-semibold capitalize">{order.status}</span>
               </div>
               <div className="flex justify-between">
@@ -53,24 +53,24 @@ export default function OrderConfirmationScreen({
                 <span className="font-semibold text-green-600">{order.total} TND</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Payment:</span>
+                <span className="text-gray-600">Paiement:</span>
                 <span className="font-semibold">{order.payment_method_title}</span>
               </div>
 
               {isManualEntry && (
                 <>
                   <div className="pt-2 border-t border-gray-200">
-                    <p className="text-orange-600 font-medium mb-2">⚠️ Manual Entry Required</p>
+                    <p className="text-orange-600 font-medium mb-2">⚠️ Saisie manuelle requise</p>
                     <p className="text-xs text-gray-500 mb-2">
-                      Due to API permissions, this order needs to be manually created in WooCommerce admin.
+                      En raison des autorisations API, cette commande doit être créée manuellement dans l'admin WooCommerce.
                     </p>
                   </div>
 
                   <div className="text-xs text-gray-500">
-                    <p><strong>Customer:</strong> {order.billing?.first_name} {order.billing?.last_name}</p>
+                    <p><strong>Client:</strong> {order.billing?.first_name} {order.billing?.last_name}</p>
                     <p><strong>Email:</strong> {order.billing?.email}</p>
-                    <p><strong>Phone:</strong> {order.billing?.phone}</p>
-                    <p><strong>Items:</strong> {order.line_items?.length || 0} product(s)</p>
+                    <p><strong>Téléphone:</strong> {order.billing?.phone}</p>
+                    <p><strong>Articles:</strong> {order.line_items?.length || 0} produit(s)</p>
                   </div>
                 </>
               )}
@@ -80,13 +80,13 @@ export default function OrderConfirmationScreen({
 
         {isManualEntry && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-medium text-orange-800 mb-2">📋 Next Steps:</h3>
+            <h3 className="font-medium text-orange-800 mb-2">📋 Prochaines étapes:</h3>
             <ol className="text-sm text-orange-700 space-y-1">
-              <li>1. Go to WooCommerce admin panel</li>
-              <li>2. Navigate to Orders → Add New</li>
-              <li>3. Copy the customer details above</li>
-              <li>4. Add the products from the order</li>
-              <li>5. Set payment method: {order.payment_method_title}</li>
+              <li>1. Accédez au panneau d'administration WooCommerce</li>
+              <li>2. Naviguez vers Commandes → Ajouter nouveau</li>
+              <li>3. Copiez les détails du client ci-dessus</li>
+              <li>4. Ajoutez les produits de la commande</li>
+              <li>5. Définissez le mode de paiement: {order.payment_method_title}</li>
             </ol>
           </div>
         )}
@@ -94,8 +94,8 @@ export default function OrderConfirmationScreen({
         <div className="space-y-3">
           <p className="text-sm text-gray-500">
             {isManualEntry
-              ? 'Order details have been logged to the browser console for reference.'
-              : 'You\'ll receive an email confirmation shortly with order details and tracking information.'
+              ? 'Les détails de la commande ont été enregistrés dans la console du navigateur pour référence.'
+              : 'Vous recevrez sous peu un email de confirmation avec les détails de la commande et les informations de suivi.'
             }
           </p>
 
@@ -104,7 +104,7 @@ export default function OrderConfirmationScreen({
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <Home className="w-5 h-5" />
-            Back to Home
+            Retour à l'accueil
           </button>
         </div>
       </div>

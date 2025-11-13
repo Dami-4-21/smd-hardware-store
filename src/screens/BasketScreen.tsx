@@ -1,5 +1,7 @@
-import { Trash2, Minus, Plus } from 'lucide-react';
-import { CartItem } from '../context/CartContext';
+import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { formatPrice } from '../utils/currency';
 
 interface BasketScreenProps {
   cartItems: CartItem[];
@@ -46,8 +48,8 @@ export default function BasketScreen({
             />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Your basket is empty</h2>
-        <p className="text-gray-500 text-center">Add some products to get started!</p>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Votre panier est vide</h2>
+        <p className="text-gray-500 text-center">Ajoutez des produits pour commencer!</p>
       </div>
     );
   }
@@ -71,7 +73,7 @@ export default function BasketScreen({
                   <h3 className="font-medium text-gray-900 mb-1">{item.product.name}</h3>
                   <p className="text-sm text-gray-500 mb-2">{item.product.brand}</p>
                   <p className="text-lg font-bold text-green-600">
-                    {item.product.price.toFixed(2)} TND
+                    {formatPrice(item.product.price)}
                   </p>
                 </div>
 
@@ -104,7 +106,7 @@ export default function BasketScreen({
                 </div>
 
                 <p className="text-lg font-bold text-gray-900">
-                  {(item.product.price * item.quantity).toFixed(2)} TND
+                  {formatPrice(item.product.price * item.quantity)}
                 </p>
               </div>
             </div>
@@ -116,16 +118,16 @@ export default function BasketScreen({
         <div className="px-4 py-4">
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="text-gray-900">{subtotal.toFixed(2)} TND</span>
+              <span className="text-gray-600">Sous-total</span>
+              <span className="text-gray-900">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tax (10%)</span>
-              <span className="text-gray-900">{tax.toFixed(2)} TND</span>
+              <span className="text-gray-600">TVA (10%)</span>
+              <span className="text-gray-900">{formatPrice(tax)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
               <span className="text-gray-900">Total</span>
-              <span className="text-green-600">{total.toFixed(2)} TND</span>
+              <span className="text-green-600">{formatPrice(total)}</span>
             </div>
           </div>
 
@@ -133,7 +135,7 @@ export default function BasketScreen({
             onClick={onCheckout}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-lg transition-colors"
           >
-            Proceed to Checkout
+            Passer la commande
           </button>
         </div>
       </div>

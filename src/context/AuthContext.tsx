@@ -10,6 +10,12 @@ interface User {
   companyName?: string;
   customerType?: string;
   role: string;
+  // B2B Financial fields
+  paymentMethod?: string;
+  paymentTerms?: string;
+  financialLimit?: number;
+  outstandingBalance?: number;
+  accountStatus?: string;
 }
 
 interface AuthContextType {

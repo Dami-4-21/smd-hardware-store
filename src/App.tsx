@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import HomeScreen from './screens/HomeScreen';
@@ -12,10 +13,12 @@ import CheckoutScreen from './screens/CheckoutScreen';
 import OrderConfirmationScreen from './screens/OrderConfirmationScreen';
 import LoginScreen from './screens/LoginScreen';
 import AccountScreen from './screens/AccountScreen';
+import MyQuotationsScreen from './screens/MyQuotationsScreen';
+import MyInvoicesScreen from './screens/MyInvoicesScreen';
 import { API } from './services/api';
 import { Category } from './types/api';
 
-type Screen = 'home' | 'category' | 'subcategory' | 'product' | 'basket' | 'checkout' | 'confirmation' | 'login' | 'account';
+type Screen = 'home' | 'category' | 'subcategory' | 'product' | 'basket' | 'checkout' | 'confirmation' | 'login' | 'account' | 'quotations' | 'invoices';
 
 interface AppState {
   screen: Screen;
@@ -159,6 +162,14 @@ function AppContent() {
     }
   };
 
+  const navigateToQuotations = () => {
+    setAppState({ screen: 'quotations' });
+  };
+
+  const navigateToInvoices = () => {
+    setAppState({ screen: 'invoices' });
+  };
+
   const handleLoginSuccess = () => {
     // After successful login, navigate to home
     setAppState({ screen: 'home' });
@@ -248,6 +259,8 @@ function AppContent() {
       return;
     } else if (appState.screen === 'account') {
       navigateToHome();
+    } else if (appState.screen === 'quotations') {
+      navigateToHome();
     }
   };
 
@@ -257,6 +270,7 @@ function AppContent() {
     if (appState.screen === 'confirmation') return 'Order Confirmed';
     if (appState.screen === 'login') return 'Customer Login';
     if (appState.screen === 'account') return 'My Account';
+    if (appState.screen === 'quotations') return 'My Quotations';
 
     if (appState.screen === 'subcategory' && appState.currentCategory) {
       return `${appState.currentCategory.name} - Subcategories`;
@@ -372,6 +386,8 @@ function AppContent() {
             cartItems={cartItems}
             onBack={() => setAppState(prev => ({ ...prev, screen: 'basket' }))}
             onOrderComplete={handleOrderComplete}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeFromCart}
           />
         )}
 
@@ -392,7 +408,19 @@ function AppContent() {
           <AccountScreen
             onLogout={navigateToLogin}
             onNavigateToShop={navigateToHome}
+            onNavigateToQuotations={navigateToQuotations}
+            onNavigateToInvoices={navigateToInvoices}
           />
+        )}
+
+        {appState.screen === 'quotations' && (
+          <MyQuotationsScreen
+            onBack={navigateToHome}
+          />
+        )}
+
+        {appState.screen === 'invoices' && (
+          <MyInvoicesScreen onBack={() => setAppState({ screen: 'account' })} />
         )}
       </main>
     </div>
@@ -401,10 +429,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

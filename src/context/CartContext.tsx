@@ -4,13 +4,27 @@ import { Product } from '../types/api';
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedSize?: {
+    id: string;
+    size: string;
+    price: number;
+    unitType: string;
+  };
+  selectedPack?: {
+    id: string;
+    packType: string;
+    price: number;
+    packQuantity: number;
+  };
+  // Unique key for cart item (productId + sizeId or packId)
+  cartItemKey: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, selectedSize?: any, selectedPack?: any) => void;
+  removeFromCart: (cartItemKey: string) => void;
+  updateQuantity: (cartItemKey: string, quantity: number) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getCartQuantity: (productId: string) => number;
@@ -52,53 +66,90 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cartItems, isLoading]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, selectedSize?: any, selectedPack?: any) => {
+    // Generate unique cart item key
+    const cartItemKey = selectedSize 
+      ? `${product.id}-size-${selectedSize.id}`
+      : selectedPack
+      ? `${product.id}-pack-${selectedPack.id}`
+      : product.id;
+
+    // Determine stock and price based on selection
+    const stock = selectedSize?.stock || selectedPack?.stock || product.stockQuantity || product.stock || 0;
+    const price = selectedSize?.price || selectedPack?.price || product.basePrice || product.price || 0;
+
     // Check if product is in stock
-    if (product.stock <= 0) {
+    if (stock <= 0) {
       console.warn('Cannot add out of stock product to cart');
       return;
     }
 
     setCartItems((prev) => {
-      const existingItem = prev.find((item) => item.product.id === product.id);
+      const existingItem = prev.find((item) => item.cartItemKey === cartItemKey);
 
       if (existingItem) {
-        const newQuantity = Math.min(existingItem.quantity + 1, product.stock);
+        const newQuantity = Math.min(existingItem.quantity + 1, stock);
         if (newQuantity === existingItem.quantity) {
           console.warn('Cannot add more items than available stock');
           return prev;
         }
 
         return prev.map((item) =>
-          item.product.id === product.id
+          item.cartItemKey === cartItemKey
             ? { ...item, quantity: newQuantity }
             : item
         );
       }
 
-      return [...prev, { product, quantity: 1 }];
+      // Create new cart item with selected variation
+      const newItem: CartItem = {
+        product: {
+          ...product,
+          basePrice: price,
+          price: price,
+          stock: stock,
+          stockQuantity: stock
+        },
+        quantity: 1,
+        cartItemKey,
+        selectedSize: selectedSize ? {
+          id: selectedSize.id,
+          size: selectedSize.label || selectedSize.size,
+          price: selectedSize.price,
+          unitType: selectedSize.unitType || 'piece'
+        } : undefined,
+        selectedPack: selectedPack ? {
+          id: selectedPack.id,
+          packType: selectedPack.label || selectedPack.packType,
+          price: selectedPack.price,
+          packQuantity: selectedPack.packQuantity || 1
+        } : undefined
+      };
+
+      return [...prev, newItem];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+  const removeFromCart = (cartItemKey: string) => {
+    setCartItems((prev) => prev.filter((item) => item.cartItemKey !== cartItemKey));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (cartItemKey: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(cartItemKey);
       return;
     }
 
     setCartItems((prev) => {
-      const item = prev.find((item) => item.product.id === productId);
+      const item = prev.find((item) => item.cartItemKey === cartItemKey);
       if (!item) return prev;
 
-      const newQuantity = Math.min(quantity, item.product.stock);
+      const stock = item.product.stockQuantity || item.product.stock || 0;
+      const newQuantity = Math.min(quantity, stock);
       if (newQuantity === item.quantity) return prev;
 
       return prev.map((item) =>
-        item.product.id === productId
+        item.cartItemKey === cartItemKey
           ? { ...item, quantity: newQuantity }
           : item
       );
@@ -115,7 +166,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    return cartItems.reduce((sum, item) => {
+      const price = Number(item.product.basePrice || item.product.price || 0);
+      return sum + (price * item.quantity);
+    }, 0);
   };
 
   const clearCart = () => {
