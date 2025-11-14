@@ -8,6 +8,7 @@ import CreateProductPage from './pages/CreateProductPage';
 import CategoriesPage from './pages/CategoriesPage';
 import OrdersPage from './pages/OrdersPage';
 import CustomersPage from './pages/CustomersPage';
+import QuotationManagement from './pages/QuotationManagement';
 import SettingsPage from './pages/SettingsPage';
 import BannerSliderPage from './pages/BannerSliderPage';
 
@@ -54,6 +55,7 @@ function App() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/quotations" element={<QuotationManagement />} />
         <Route path="/marketing/banners" element={<BannerSliderPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

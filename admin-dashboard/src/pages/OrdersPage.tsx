@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Package, Eye, Building2, User, Calendar } from 'lucide-react';
+import { Search, X, Package, Eye, Building2, User, Calendar, Edit } from 'lucide-react';
 import { orderService, Order } from '../services/orderService';
+import OrderEditModal from '../components/OrderEditModal';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -10,6 +11,7 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -58,6 +60,29 @@ export default function OrdersPage() {
       }
     } catch (error: any) {
       alert('Failed to update order status: ' + error.message);
+    }
+  };
+
+  const handleEditOrder = async (order: Order) => {
+    try {
+      const fullOrder = await orderService.getById(order.id);
+      setEditingOrder(fullOrder);
+    } catch (error: any) {
+      alert('Failed to load order details: ' + error.message);
+    }
+  };
+
+  const handleSaveOrderEdit = async (
+    orderId: string,
+    items: Array<{ productId: string; quantity: number; unitPrice: number }>
+  ) => {
+    try {
+      await orderService.updateItems(orderId, items);
+      alert('Order updated successfully');
+      loadOrders();
+      setEditingOrder(null);
+    } catch (error: any) {
+      throw error; // Re-throw to be handled by modal
     }
   };
 
@@ -249,14 +274,26 @@ export default function OrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleViewOrder(order)}
-                        className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {order.status === 'PENDING' && (
+                          <button
+                            onClick={() => handleEditOrder(order)}
+                            className="inline-flex items-center px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="Edit Order"
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleViewOrder(order)}
+                          className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -287,6 +324,15 @@ export default function OrdersPage() {
             Next
           </button>
         </div>
+      )}
+
+      {/* Order Edit Modal */}
+      {editingOrder && (
+        <OrderEditModal
+          order={editingOrder}
+          onClose={() => setEditingOrder(null)}
+          onSave={handleSaveOrderEdit}
+        />
       )}
 
       {/* Order Detail Modal */}

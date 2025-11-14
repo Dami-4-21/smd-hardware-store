@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Upload, X, AlertCircle, Link } from 'lucide-react';
 import { ProductFormData } from '../../pages/CreateProductPage';
 import { categoryService, Category } from '../../services/categoryService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Props {
   formData: ProductFormData;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function ProductInfoSection({ formData, updateFormData, errors }: Props) {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>(categoryService.getAllFlattened());
   const [imageInputUrl, setImageInputUrl] = useState<string>('');
   const [useUrlInput, setUseUrlInput] = useState<boolean>(false);
@@ -57,13 +59,13 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
       {/* Product Name */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Product Name <span className="text-red-500">*</span>
+          {t.products.productName} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => updateFormData({ name: e.target.value })}
-          placeholder="e.g., Cordless Drill 18V"
+          placeholder={t.products.productNamePlaceholder}
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
             errors.name ? 'border-red-500' : 'border-gray-300'
           }`}
@@ -79,7 +81,7 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
       {/* Category */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Category <span className="text-red-500">*</span>
+          {t.products.category} <span className="text-red-500">*</span>
         </label>
         <select
           value={formData.categoryId}
@@ -88,7 +90,7 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
             errors.categoryId ? 'border-red-500' : 'border-gray-300'
           }`}
         >
-          <option value="">Select a category</option>
+          <option value="">{t.products.selectCategory}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.parentId ? `  ↳ ${cat.name}` : cat.name}
@@ -109,24 +111,24 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
       {/* Description */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description
+          {t.products.description}
         </label>
         <textarea
           value={formData.description}
           onChange={(e) => updateFormData({ description: e.target.value })}
-          placeholder="Detailed product description..."
+          placeholder={t.products.descriptionPlaceholder}
           rows={6}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
         />
         <p className="mt-1 text-sm text-gray-500">
-          {formData.description.length} characters
+          {formData.description.length} {t.products.characters}
         </p>
       </div>
 
       {/* Images Upload */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Product Images
+          {t.products.productImages}
         </label>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -155,7 +157,7 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
           {!useUrlInput ? (
             <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
               <Upload className="w-8 h-8 text-gray-400 mb-2" />
-              <span className="text-sm text-gray-600">Upload Image</span>
+              <span className="text-sm text-gray-600">{t.products.uploadImage}</span>
               <input
                 type="file"
                 accept="image/*"
@@ -184,7 +186,7 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
             }`}
           >
             <Upload className="w-4 h-4 inline mr-2" />
-            Upload File
+            {t.products.uploadFile}
           </button>
           <button
             type="button"
@@ -196,7 +198,7 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
             }`}
           >
             <Link className="w-4 h-4 inline mr-2" />
-            Use URL
+            {t.products.useUrl}
           </button>
         </div>
 
@@ -226,20 +228,20 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
         )}
         
         <p className="text-sm text-gray-500">
-          First image will be the primary image. Recommended size: 800x800px
+          {t.products.firstImagePrimary}
         </p>
       </div>
 
       {/* Brand */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Brand (Optional)
+          {t.products.brand} (Optional)
         </label>
         <input
           type="text"
           value={formData.brand}
           onChange={(e) => updateFormData({ brand: e.target.value })}
-          placeholder="e.g., Bosch, DeWalt, Makita"
+          placeholder={t.products.brandPlaceholder}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
         />
       </div>
@@ -247,13 +249,13 @@ export default function ProductInfoSection({ formData, updateFormData, errors }:
       {/* Product Status */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Product Status
+          {t.products.productStatus}
         </label>
         <div className="flex gap-4">
           {[
-            { value: 'active', label: 'Active', color: 'green' },
-            { value: 'draft', label: 'Draft', color: 'yellow' },
-            { value: 'hidden', label: 'Hidden', color: 'gray' },
+            { value: 'active', label: t.products.active, color: 'green' },
+            { value: 'draft', label: t.products.draft, color: 'yellow' },
+            { value: 'hidden', label: t.products.hidden, color: 'gray' },
           ].map((status) => (
             <label
               key={status.value}

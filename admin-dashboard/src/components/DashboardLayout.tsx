@@ -11,27 +11,31 @@ import {
   Menu,
   X,
   Megaphone,
+  FileText,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
   onLogout: () => void;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Products', href: '/products', icon: Package },
-  { name: 'Categories', href: '/categories', icon: FolderTree },
-  { name: 'Orders', href: '/orders', icon: ShoppingCart },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Marketing', href: '/marketing/banners', icon: Megaphone },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
-
 export default function DashboardLayout({ children, onLogout }: DashboardLayoutProps) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t } = useLanguage();
+
+  const navigation = [
+    { name: t.nav.dashboard, href: '/', icon: LayoutDashboard },
+    { name: t.nav.products, href: '/products', icon: Package },
+    { name: t.nav.categories, href: '/categories', icon: FolderTree },
+    { name: t.nav.orders, href: '/orders', icon: ShoppingCart },
+    { name: t.nav.quotations, href: '/quotations', icon: FileText },
+    { name: t.nav.customers, href: '/customers', icon: Users },
+    { name: t.nav.marketing, href: '/marketing/banners', icon: Megaphone },
+    { name: t.nav.settings, href: '/settings', icon: Settings },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,7 +90,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
             className="flex items-center gap-3 px-4 py-3 w-full text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            {t.nav.logout}
           </button>
         </div>
       </aside>

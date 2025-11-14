@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Upload, X, Eye, EyeOff } from 'lucide-react';
 import { CreateCustomerData, customerService } from '../services/customerService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CustomerFormProps {
   onSuccess: (data: { customer: any; credentials: any }) => void;
@@ -16,7 +17,29 @@ const CUSTOMER_TYPES = [
   'Other',
 ];
 
+const PAYMENT_METHODS = [
+  { value: 'COD', label: 'Cash on Delivery' },
+  { value: 'CHEQUE', label: 'Cheque on Delivery' },
+  { value: 'NET_TERMS', label: 'Payment on Due Date (Net Terms)' },
+];
+
+const PAYMENT_TERMS = [
+  { value: 'NET_30', label: 'NET 30 (30 days)' },
+  { value: 'NET_60', label: 'NET 60 (60 days)' },
+  { value: 'NET_90', label: 'NET 90 (90 days)' },
+  { value: 'NET_120', label: 'NET 120 (120 days)' },
+];
+
+const ACCOUNT_STATUSES = [
+  { value: 'COMMERCIAL_IN_PROCESS', label: 'Commercial In-Process' },
+  { value: 'FINANCIAL_IN_PROCESS', label: 'Financial In-Process' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'SUSPENDED', label: 'Suspended' },
+  { value: 'FINANCIAL_NON_CURRENT', label: 'Financial Non-Current' },
+];
+
 export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<CreateCustomerData>({
     email: '',
     username: '',
@@ -28,6 +51,11 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
     rneNumber: '',
     taxId: '',
     customerType: '',
+    // B2B Financial Fields
+    paymentMethod: 'COD',
+    paymentTerm: undefined,
+    financialLimit: 0,
+    accountStatus: 'COMMERCIAL_IN_PROCESS',
     address: {
       street: '',
       city: '',
@@ -133,11 +161,11 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
 
       {/* Personal Information */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-gray-900 mb-4">Personal Information</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t.customers.personalInfo}</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name <span className="text-red-500">*</span>
+              {t.customers.firstName} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -150,7 +178,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name <span className="text-red-500">*</span>
+              {t.customers.lastName} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -163,7 +191,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
+              {t.customers.email} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -176,7 +204,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              {t.customers.phone}
             </label>
             <input
               type="tel"
@@ -191,11 +219,11 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
 
       {/* Company Information */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-gray-900 mb-4">Company Information</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t.customers.companyInfo}</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Company Name <span className="text-red-500">*</span>
+              {t.customers.companyName} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -208,7 +236,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              RNE Number <span className="text-red-500">*</span>
+              {t.customers.rneNumber} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -216,13 +244,13 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
               value={formData.rneNumber}
               onChange={handleChange}
               required
-              placeholder="Commercial Registration Number"
+              placeholder={t.customers.commercialRegistration}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tax ID
+              {t.customers.taxId}
             </label>
             <input
               type="text"
@@ -234,7 +262,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Customer Type
+              {t.customers.customerType}
             </label>
             <select
               name="customerType"
@@ -242,23 +270,21 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select type...</option>
+              <option value="">{t.customers.selectType}</option>
               {CUSTOMER_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload RNE PDF
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.customers.uploadRne}</label>
             <div className="mt-1">
               {!rnePdfFile ? (
                 <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                   <div className="text-center">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <span className="text-sm text-gray-600">Click to upload RNE PDF</span>
-                    <span className="text-xs text-gray-500 block mt-1">PDF up to 5MB</span>
+                    <p className="text-sm text-gray-600">{t.customers.clickToUpload}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t.customers.pdfUpTo}</p>
                   </div>
                   <input
                     type="file"
@@ -284,25 +310,121 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
         </div>
       </div>
 
+      {/* Financial Settings (B2B) */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+        <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
+          💰 {t.customers.financialSettings}
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">{t.customers.configurePayment}</p>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t.customers.paymentMethod} <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="paymentMethod"
+              value={formData.paymentMethod}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {PAYMENT_METHODS.map(method => (
+                <option key={method.value} value={method.value}>
+                  {method.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {formData.paymentMethod === 'NET_TERMS' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t.customers.paymentTerms}
+              </label>
+              <select
+                name="paymentTerm"
+                value={formData.paymentTerm || ''}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">{t.customers.selectPaymentTerms}</option>
+                {PAYMENT_TERMS.map(term => (
+                  <option key={term.value} value={term.value}>
+                    {term.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className={formData.paymentMethod === 'NET_TERMS' ? '' : 'col-span-2'}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t.customers.creditLimit}
+            </label>
+            <input
+              type="number"
+              name="financialLimit"
+              value={formData.financialLimit}
+              onChange={handleChange}
+              min="0"
+              step="100"
+              placeholder="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">{t.customers.maxOutstanding}</p>
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t.customers.accountStatus} <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="accountStatus"
+              value={formData.accountStatus}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {ACCOUNT_STATUSES.map(status => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              • <strong>{t.customers.commercialInProcess}:</strong> {t.customers.defaultForNew}<br/>
+              • <strong>{t.customers.financialInProcess}:</strong> {t.customers.underFinancialReview}<br/>
+              • <strong>{t.customers.active}:</strong> {t.customers.canSubmitQuotations}<br/>
+              • <strong>{t.customers.suspended}:</strong> {t.customers.accountTemporarilyDisabled}<br/>
+              • <strong>{t.customers.financialNonCurrent}:</strong> {t.customers.paymentIssuesDetected}
+            </p>
+          </div>
+
+          <div className="col-span-2 bg-blue-100 border border-blue-300 rounded-lg p-3">
+            <p className="text-sm text-blue-700"><strong>📝 {t.customers.noteOutstanding}:</strong> {t.customers.outstandingNote}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Login Credentials */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-gray-900 mb-4">Login Credentials</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t.customers.loginCredentials}</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+              {t.customers.username}
             </label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Leave empty to use email prefix"
+              placeholder={t.customers.leaveEmpty}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              If empty, username will be generated from email
-            </p>
+            <p className="text-xs text-gray-500 mt-1">{t.customers.usernameGenerated}</p>
           </div>
           <div>
             <label className="flex items-center space-x-2 mb-2">
@@ -312,7 +434,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
                 onChange={(e) => setAutoGeneratePassword(e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm font-medium text-gray-700">Auto-generate secure password</span>
+              <span className="ml-2 text-sm">{t.customers.autoGeneratePassword}</span>
             </label>
             {!autoGeneratePassword && (
               <div className="relative">
@@ -321,7 +443,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter password"
+                  placeholder={t.customers.enterPassword}
                   className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button
@@ -339,11 +461,11 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
 
       {/* Address (Optional) */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-gray-900 mb-4">Address (Optional)</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">{t.customers.addressOptional}</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Street
+              {t.customers.street}
             </label>
             <input
               type="text"
@@ -355,7 +477,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              City
+              {t.customers.city}
             </label>
             <input
               type="text"
@@ -367,7 +489,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              State/Region
+              {t.customers.stateRegion}
             </label>
             <input
               type="text"
@@ -379,7 +501,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Postal Code
+              {t.customers.postalCode}
             </label>
             <input
               type="text"
@@ -391,7 +513,7 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Country
+              {t.customers.country}
             </label>
             <input
               type="text"
@@ -412,14 +534,14 @@ export default function CustomerForm({ onSuccess, onCancel }: CustomerFormProps)
           disabled={loading || uploading}
           className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
-          Cancel
+          {t.common.cancel}
         </button>
         <button
           type="submit"
           disabled={loading || uploading}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {uploading ? 'Uploading...' : loading ? 'Creating...' : 'Create Customer'}
+          {uploading ? 'Uploading...' : loading ? `${t.common.loading}` : t.customers.createCustomer}
         </button>
       </div>
     </form>

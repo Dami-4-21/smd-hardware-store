@@ -5,6 +5,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import ProductInfoSection from '../components/product-form/ProductInfoSection';
 import MeasurementSection from '../components/product-form/MeasurementSection';
 import SizeSpecificationSection from '../components/product-form/SizeSpecificationSection';
@@ -85,6 +86,7 @@ const initialFormData: ProductFormData = {
 export default function CreateProductPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { t } = useLanguage();
   const isEditMode = !!id;
   
   const [formData, setFormData] = useState<ProductFormData>(initialFormData);
@@ -140,11 +142,11 @@ export default function CreateProductPage() {
   };
 
   const tabs = [
-    { id: 'info', label: 'Product Info', icon: '📦' },
-    { id: 'measurement', label: 'Measurement & Selling', icon: '📏' },
-    { id: 'sizes', label: 'Sizes & Specs', icon: '🔧' },
-    { id: 'pricing', label: 'Pricing & Inventory', icon: '💰' },
-    { id: 'seo', label: 'SEO', icon: '🔍' },
+    { id: 'info', label: t.products.productInfo, icon: '📦' },
+    { id: 'measurement', label: t.products.measurementSelling, icon: '📏' },
+    { id: 'sizes', label: t.products.sizesSpecs, icon: '🔧' },
+    { id: 'pricing', label: t.products.pricingInventory, icon: '💰' },
+    { id: 'seo', label: t.products.seo, icon: '🔍' },
   ];
 
   const updateFormData = (updates: Partial<ProductFormData>) => {
@@ -155,16 +157,16 @@ export default function CreateProductPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required';
+      newErrors.name = t.products.productNameRequired;
     }
     if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required';
+      newErrors.categoryId = t.products.categoryRequired;
     }
     if (formData.basePrice <= 0) {
-      newErrors.basePrice = 'Base price must be greater than 0';
+      newErrors.basePrice = t.products.basePriceRequired;
     }
     if (!formData.sku.trim()) {
-      newErrors.sku = 'SKU is required';
+      newErrors.sku = t.products.skuRequired;
     }
 
     setErrors(newErrors);
@@ -175,7 +177,7 @@ export default function CreateProductPage() {
     if (!validateForm() && !asDraft) {
       // Show which fields are missing
       const errorFields = Object.keys(errors).join(', ');
-      alert(`Please fill in all required fields: ${errorFields}`);
+      alert(`${t.products.fillRequiredFields}: ${errorFields}`);
       return;
     }
 
@@ -184,13 +186,13 @@ export default function CreateProductPage() {
     try {
       // Additional validation before sending
       if (!formData.categoryId) {
-        alert('Please select a category');
+        alert(t.products.selectCategoryFirst);
         setIsSaving(false);
         return;
       }
 
       if (!formData.basePrice || formData.basePrice <= 0) {
-        alert('Please enter a valid price');
+        alert(t.products.enterValidPrice);
         setIsSaving(false);
         return;
       }
@@ -231,17 +233,17 @@ export default function CreateProductPage() {
       if (isEditMode && id) {
         await productService.update(id, productData);
         console.log('Product updated successfully');
-        alert(`Product ${asDraft ? 'saved as draft' : 'updated'} successfully!`);
+        alert(asDraft ? t.products.productSavedDraft : t.products.productUpdated);
       } else {
         const createdProduct = await productService.create(productData);
         console.log('Product created successfully:', createdProduct);
-        alert(`Product ${asDraft ? 'saved as draft' : 'created'} successfully!`);
+        alert(asDraft ? t.products.productSavedDraft : t.products.productCreated);
       }
       
       navigate('/products');
     } catch (error: any) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} product:`, error);
-      alert(`Failed to ${isEditMode ? 'update' : 'create'} product: ${error.message}`);
+      alert(`${isEditMode ? t.products.failedToUpdate : t.products.failedToCreate}: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -271,10 +273,10 @@ export default function CreateProductPage() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {isEditMode ? 'Edit Product' : 'Create New Product'}
+              {isEditMode ? t.products.editProduct : t.products.createNew}
             </h1>
             <p className="text-sm text-gray-600">
-              {isEditMode ? 'Update product information' : 'Add a new product to your catalog'}
+              {isEditMode ? t.products.updateProductInfo : t.products.addNewProduct}
             </p>
           </div>
         </div>
@@ -285,14 +287,14 @@ export default function CreateProductPage() {
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Eye className="w-4 h-4" />
-            Preview
+            {t.products.preview}
           </button>
           <button
             onClick={() => handleSave(true)}
             disabled={isSaving}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Save as Draft
+            {t.products.saveAsDraft}
           </button>
           <button
             onClick={() => handleSave(false)}
@@ -302,12 +304,12 @@ export default function CreateProductPage() {
             {isSaving ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                {isEditMode ? 'Updating...' : 'Saving...'}
+                {isEditMode ? t.products.updating : t.products.saving}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                {isEditMode ? 'Update Product' : 'Create Product'}
+                {isEditMode ? t.products.updateProduct : t.products.createProduct}
               </>
             )}
           </button>
@@ -390,7 +392,7 @@ export default function CreateProductPage() {
           disabled={activeTab === 'info'}
           className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Previous
+          {t.products.previous}
         </button>
         <button
           onClick={() => {
@@ -402,7 +404,7 @@ export default function CreateProductPage() {
           disabled={activeTab === 'seo'}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Next
+          {t.products.next}
         </button>
       </div>
 

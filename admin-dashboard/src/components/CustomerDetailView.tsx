@@ -16,6 +16,10 @@ import {
   RefreshCw,
   Edit,
   Download,
+  DollarSign,
+  CreditCard,
+  TrendingUp,
+  AlertCircle,
 } from 'lucide-react';
 import { Customer, customerService } from '../services/customerService';
 
@@ -305,6 +309,138 @@ export default function CustomerDetailView({ customer, onClose }: CustomerDetail
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Financial Information (B2B) */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  💰 Financial Information (B2B)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  {/* Credit Limit Card */}
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-600">Credit Limit</label>
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(customer.financialLimit || 0)}
+                    </p>
+                  </div>
+
+                  {/* Current Outstanding Card */}
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-600">Outstanding</label>
+                      <AlertCircle className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {formatCurrency(customer.currentOutstanding || 0)}
+                    </p>
+                  </div>
+
+                  {/* Available Credit Card */}
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-600">Available Credit</label>
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency((customer.financialLimit || 0) - (customer.currentOutstanding || 0))}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-3 border border-blue-200">
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Payment Method
+                    </label>
+                    <p className="mt-1 text-gray-900 font-medium">
+                      {customer.paymentTerm === 'NET_30' || customer.paymentTerm === 'NET_60' || 
+                       customer.paymentTerm === 'NET_90' || customer.paymentTerm === 'NET_120'
+                        ? 'Payment on Due Date (Net Terms)'
+                        : 'Cash/Cheque on Delivery'}
+                    </p>
+                  </div>
+
+                  {customer.paymentTerm && (
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <label className="text-sm font-medium text-gray-600">Payment Terms</label>
+                      <p className="mt-1 text-gray-900 font-medium">
+                        {customer.paymentTerm?.replace('_', ' ')} 
+                        {customer.paymentTerm === 'NET_30' && ' (30 days)'}
+                        {customer.paymentTerm === 'NET_60' && ' (60 days)'}
+                        {customer.paymentTerm === 'NET_90' && ' (90 days)'}
+                        {customer.paymentTerm === 'NET_120' && ' (120 days)'}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-lg p-3 border border-blue-200 md:col-span-2">
+                    <label className="text-sm font-medium text-gray-600">Account Status</label>
+                    <div className="mt-1">
+                      {customer.accountStatus === 'ACTIVE' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Active - Can submit quotations
+                        </span>
+                      )}
+                      {customer.accountStatus === 'COMMERCIAL_IN_PROCESS' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Commercial In-Process
+                        </span>
+                      )}
+                      {customer.accountStatus === 'FINANCIAL_IN_PROCESS' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Financial In-Process
+                        </span>
+                      )}
+                      {customer.accountStatus === 'SUSPENDED' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Suspended
+                        </span>
+                      )}
+                      {customer.accountStatus === 'FINANCIAL_NON_CURRENT' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Financial Non-Current
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Credit Usage Progress Bar */}
+                {customer.financialLimit && customer.financialLimit > 0 && (
+                  <div className="mt-4 bg-white rounded-lg p-3 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-600">Credit Usage</label>
+                      <span className="text-sm text-gray-600">
+                        {((customer.currentOutstanding || 0) / customer.financialLimit * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className={`h-3 rounded-full transition-all ${
+                          ((customer.currentOutstanding || 0) / customer.financialLimit) > 0.9
+                            ? 'bg-red-600'
+                            : ((customer.currentOutstanding || 0) / customer.financialLimit) > 0.7
+                            ? 'bg-orange-500'
+                            : 'bg-green-500'
+                        }`}
+                        style={{
+                          width: `${Math.min(((customer.currentOutstanding || 0) / customer.financialLimit) * 100, 100)}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Account Status */}

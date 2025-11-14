@@ -14,6 +14,11 @@ export interface Customer {
   customerType?: string;
   isActive: boolean;
   emailVerified: boolean;
+  // B2B Financial Fields
+  financialLimit?: number;
+  currentOutstanding?: number;
+  paymentTerm?: string;
+  accountStatus?: string;
   createdAt: string;
   updatedAt?: string;
   _count?: {
@@ -54,6 +59,11 @@ export interface CreateCustomerData {
   rnePdfUrl?: string;
   taxId?: string;
   customerType?: string;
+  // B2B Financial Fields
+  paymentMethod?: string;
+  paymentTerm?: string;
+  financialLimit?: number;
+  accountStatus?: string;
   address?: {
     street: string;
     city: string;

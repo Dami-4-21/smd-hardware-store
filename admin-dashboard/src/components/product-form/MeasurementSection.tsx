@@ -1,5 +1,6 @@
 import { Plus, Trash2, Eye } from 'lucide-react';
 import { ProductFormData, PackSize } from '../../pages/CreateProductPage';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Props {
   formData: ProductFormData;
@@ -8,13 +9,14 @@ interface Props {
 }
 
 export default function MeasurementSection({ formData, updateFormData, unitLabel }: Props) {
+  const { t } = useLanguage();
 
   const sellingTypes = [
-    { value: 'piece', label: 'By Piece', icon: '📦', unit: 'piece', examples: '1 unit, pack of 6, box of 12' },
-    { value: 'weight', label: 'By Weight', icon: '⚖️', unit: 'kg', examples: '1kg, 5kg, 10kg' },
-    { value: 'length', label: 'By Length', icon: '📏', unit: 'm', examples: '1m, 5m, 10m, 50m' },
-    { value: 'volume', label: 'By Volume', icon: '🧪', unit: 'L', examples: '1L, 5L, 20L' },
-    { value: 'custom', label: 'Custom Unit', icon: '⚙️', unit: 'custom', examples: 'Define your own' },
+    { value: 'piece', label: t.products.piece, icon: '📦', unit: 'piece', examples: '1 unit, pack of 6, box of 12' },
+    { value: 'weight', label: t.products.weight, icon: '⚖️', unit: 'kg', examples: '1kg, 5kg, 10kg' },
+    { value: 'length', label: t.products.length, icon: '📏', unit: 'm', examples: '1m, 5m, 10m, 50m' },
+    { value: 'volume', label: t.products.volume, icon: '🧪', unit: 'L', examples: '1L, 5L, 20L' },
+    { value: 'custom', label: t.products.custom, icon: '⚙️', unit: 'custom', examples: 'Define your own' },
   ];
 
   const addPackSize = () => {
@@ -48,7 +50,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
       {/* Selling Type Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          How is this product sold? <span className="text-red-500">*</span>
+          {t.products.sellingType} <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sellingTypes.map((type) => (
@@ -94,13 +96,13 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
       {formData.sellingType === 'custom' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Custom Unit Name <span className="text-red-500">*</span>
+            {t.products.customUnit} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.customUnit}
             onChange={(e) => updateFormData({ customUnit: e.target.value })}
-            placeholder="e.g., roll, sheet, panel, bag"
+            placeholder={t.products.customUnitPlaceholder}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
           />
           <p className="mt-1 text-sm text-gray-500">
@@ -114,10 +116,10 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
         <div className="flex items-center justify-between mb-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Pack Size Options
+              {t.products.packSizes}
             </label>
             <p className="text-sm text-gray-500">
-              Define different quantities/packs with individual pricing
+              {t.products.packSizesDesc}
             </p>
           </div>
           <button
@@ -125,7 +127,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Pack Size
+            {t.products.addPackSize}
           </button>
         </div>
 
@@ -137,7 +139,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
               onClick={addPackSize}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Add First Pack Size
+              {t.products.addPackSize}
             </button>
           </div>
         ) : (
@@ -157,7 +159,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Quantity
+                      {t.products.quantity}
                     </label>
                     <input
                       type="number"
@@ -170,7 +172,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
                   
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Label
+                      {t.products.label}
                     </label>
                     <input
                       type="text"
@@ -183,7 +185,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
                   
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Price (TND)
+                      {t.products.price} (TND)
                     </label>
                     <input
                       type="number"
@@ -197,7 +199,7 @@ export default function MeasurementSection({ formData, updateFormData, unitLabel
                   
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Stock
+                      {t.products.stock}
                     </label>
                     <input
                       type="number"

@@ -1,6 +1,7 @@
 import { Plus, Trash2, Upload, Download, Eye } from 'lucide-react';
 import { ProductFormData, SizeVariation } from '../../pages/CreateProductPage';
 import { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Props {
   formData: ProductFormData;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function SizeSpecificationSection({ formData, updateFormData, unitLabel }: Props) {
+  const { t } = useLanguage();
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const addSizeVariation = () => {
@@ -68,7 +70,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
             className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
           <div>
-            <div className="font-semibold text-gray-900">Enable Size Variations</div>
+            <div className="font-semibold text-gray-900">{t.products.hasSizes}</div>
             <div className="text-sm text-gray-600">
               Product has multiple sizes/dimensions (e.g., screws, bolts, cables)
             </div>
@@ -118,10 +120,10 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
             <div className="flex items-center justify-between mb-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Size Variations
+                  {t.products.sizeVariations}
                 </label>
                 <p className="text-sm text-gray-500">
-                  Add individual size options with specific pricing and stock
+                  {t.products.sizeVariationsDesc}
                 </p>
               </div>
               <button
@@ -129,7 +131,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add Size
+                {t.products.addSize}
               </button>
             </div>
 
@@ -141,18 +143,18 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                   onClick={addSizeVariation}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Add First Size
+                  {t.products.addSize}
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
                 {/* Table Header */}
                 <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700">
-                  <div className="col-span-3">Size Name</div>
-                  <div className="col-span-2">Dimension</div>
+                  <div className="col-span-3">{t.products.sizeName}</div>
+                  <div className="col-span-2">{t.products.dimension}</div>
                   <div className="col-span-2">Unit</div>
-                  <div className="col-span-2">Price (TND)</div>
-                  <div className="col-span-2">Stock</div>
+                  <div className="col-span-2">{t.products.price} (TND)</div>
+                  <div className="col-span-2">{t.products.stock}</div>
                   <div className="col-span-1"></div>
                 </div>
 
@@ -162,7 +164,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                       <div className="md:col-span-3">
                         <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                          Size Name
+                          {t.products.sizeName}
                         </label>
                         <input
                           type="text"
@@ -175,7 +177,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                       
                       <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                          Dimension
+                          {t.products.dimension}
                         </label>
                         <input
                           type="text"
@@ -197,7 +199,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                       
                       <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                          Price (TND)
+                          {t.products.price} (TND)
                         </label>
                         <input
                           type="number"
@@ -211,7 +213,7 @@ export default function SizeSpecificationSection({ formData, updateFormData, uni
                       
                       <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                          Stock
+                          {t.products.stock}
                         </label>
                         <input
                           type="number"

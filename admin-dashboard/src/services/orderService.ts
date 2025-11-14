@@ -157,4 +157,63 @@ export const orderService = {
     const data = await response.json();
     return data.data;
   },
+
+  /**
+   * Update order items (bulk update)
+   */
+  async updateItems(
+    id: string,
+    items: Array<{ productId: string; quantity: number; unitPrice: number }>
+  ): Promise<Order> {
+    const response = await fetch(`${API_URL}/orders/${id}/items`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ items }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to update order items');
+    }
+
+    const data = await response.json();
+    return data.data;
+  },
+
+  /**
+   * Add item to order
+   */
+  async addItem(id: string, productId: string, quantity: number): Promise<Order> {
+    const response = await fetch(`${API_URL}/orders/${id}/items`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ productId, quantity }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to add item to order');
+    }
+
+    const data = await response.json();
+    return data.data;
+  },
+
+  /**
+   * Remove item from order
+   */
+  async removeItem(id: string, itemId: string): Promise<Order> {
+    const response = await fetch(`${API_URL}/orders/${id}/items/${itemId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to remove item from order');
+    }
+
+    const data = await response.json();
+    return data.data;
+  },
 };
